@@ -12,6 +12,12 @@ import java.util.*;
 import java.io.*;
 import java.net.*;
 
+/**
+ * Server - a server that handles the messages of a chat application
+ * @author A.Franco (if you contributed add your name here)
+ * @version 11-29-21
+ */
+
 public class Server extends Application{
    private Stage stage;
    private Scene scene;
@@ -74,8 +80,6 @@ public class Server extends Application{
    }//end of ServerThread
    
    class ClientThread extends Thread {
-      // Since attributes are per-object items, each ClientThread has its OWN
-      // socket, unique to that client
       private Socket cSocket;
       private String clientId = "";
 
@@ -103,6 +107,6 @@ public class Server extends Application{
 
          
          System.out.println(clientId + " Client disconnected!\n");
-      }  
-   }
+      }//end of run
+   }// end of ClientThread
 }

@@ -14,10 +14,11 @@ import java.net.*;
 import javafx.event.ActionEvent.*;
 import javafx.event.EventHandler.*;
 
+
 /**
  * Client - a class that displays a log in page and moderate chats
- * @author A.Franco, AErskine, W.Celentano (add names if you contributed)
- * @version 12-1-21
+ * @author A.Franco, AErskine (add names if you contributed)
+ * @version 11-29-21
  */
 public class Client extends Application{
 
@@ -50,36 +51,35 @@ public class Client extends Application{
       //open login window
       doLogin();
       
-      
+      //Create top FlowPane for TextArea
       FlowPane fpTop = new FlowPane(8,8);
       fpTop.getChildren().addAll(taChat);
       fpTop.setAlignment(Pos.CENTER);
-      taChat.setDisable(true);
-      taChat.setPrefHeight(250);
       
+      //Create Middle FlowPane and add label and textfield
       FlowPane fpMid = new FlowPane(8, 8);
       fpMid.getChildren().addAll(lblMsg, tfMsg);
       fpMid.setAlignment(Pos.CENTER);
       tfMsg.setPrefColumnCount(20);
       
-      /*
-      tfMsg.setOnAction(new EventHandler<WindowEvent>() {
-         public void handle(WindowEvent evt) {
-            //doSendMsg
+      //Create Bottom FlowPane and add button
+      FlowPane fpBot = new FlowPane(8, 8);
+      fpBot.getChildren().addAll(btnSend);
+      fpBot.setAlignment(Pos.CENTER);
+      
+      //Create action event for textfield for pressing enter DOES NOT WORK CURRENTLY
+      tfMsg.setOnAction(new EventHandler<ActionEvent>() {
+         public void handle(ActionEvent evt) {
+            doSendMsg(tfMsg.getText());
          }
       });
-      */
       
-      root.getChildren().addAll(fpTop, fpMid, btnSend);
+      root.getChildren().addAll(fpTop, fpMid, fpBot);
       scene = new Scene(root, 500, 350);
       stage.setScene(scene);
       stage.show();
       
-      stage.setOnCloseRequest(new EventHandler<WindowEvent>() {
-         public void handle(WindowEvent evt) {
-            //doDisconnect();
-         }
-      });
+
    }//end of start
    
    private void doDisconnect(){
@@ -106,14 +106,26 @@ public class Client extends Application{
       }
    }//end of doConnect()
    
-   private void sendMsg(){}
+   /*
+   * doSendMsg Method: 
+   * Put the message in the TextArea and send to clients 
+   */
+   private void doSendMsg(String message){
+      taChat.appendText("<" + username + ">" + message);
+      
+      //idk how but this message has to be sent to the other clients that are on the server - Andy
+   } //end doSendMsg
    
    
+   /*
+   * sendUserInfo Method: 
+   * Send username and password to server
+   */
    private void sendUserInfo(){
       //send username and password 
       pwt.println(username + "#" + password);
       pwt.flush();
-   }
+   }//end sendUserInfo()
    
    
    /*
@@ -125,12 +137,11 @@ public class Client extends Application{
         loginStage.initModality(Modality.APPLICATION_MODAL);
          
         TextField tfUser = new TextField();
-        PasswordField tfPass = new PasswordField();
+        TextField tfPass = new TextField();
         TextField tfServer = new TextField();
         
         Button btnSubmit = new Button("Submit");
-        btnSubmit.setDefaultButton(true);
-        
+
         btnSubmit.setOnAction(new EventHandler<ActionEvent>(){
          public void handle(ActionEvent e){
             //send user info here 
@@ -139,16 +150,11 @@ public class Client extends Application{
             
             serverIP = tfServer.getText();
             
-            if(username.isEmpty() || password.isEmpty() || serverIP.isEmpty()) {
-               Alert alert = new Alert(AlertType.INFORMATION);
-               alert.setContentText("Please enter information into all fields");
-               alert.show();
-            }else{
-               //doConnect();
-               // sendUserInfo();
+            doConnect();
+            sendUserInfo();
             
-               loginStage.close();
-            }
+            loginStage.close();
+            
          }
         });
         
@@ -173,7 +179,7 @@ public class Client extends Application{
         layout.add(label3, 0,2);
         layout.add(label4, 0, 3);
          
-        Scene scene = new Scene(layout, 250, 175);          
+        Scene scene = new Scene(layout, 250, 250);          
         loginStage.setTitle("RITCord Login");
         loginStage.setScene(scene);
         loginStage.showAndWait();   

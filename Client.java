@@ -54,17 +54,21 @@ public class Client extends Application{
       FlowPane fpTop = new FlowPane(8,8);
       fpTop.getChildren().addAll(taChat);
       fpTop.setAlignment(Pos.CENTER);
+      taChat.setDisable(true);
+      taChat.setPrefHeight(250);
       
       FlowPane fpMid = new FlowPane(8, 8);
       fpMid.getChildren().addAll(lblMsg, tfMsg);
       fpMid.setAlignment(Pos.CENTER);
       tfMsg.setPrefColumnCount(20);
       
+      /*
       tfMsg.setOnAction(new EventHandler<WindowEvent>() {
          public void handle(WindowEvent evt) {
             //doSendMsg
          }
       });
+      */
       
       root.getChildren().addAll(fpTop, fpMid, btnSend);
       scene = new Scene(root, 500, 350);
@@ -121,7 +125,7 @@ public class Client extends Application{
         loginStage.initModality(Modality.APPLICATION_MODAL);
          
         TextField tfUser = new TextField();
-        TextField tfPass = new TextField();
+        PasswordField tfPass = new PasswordField();
         TextField tfServer = new TextField();
         
         Button btnSubmit = new Button("Submit");
@@ -135,11 +139,16 @@ public class Client extends Application{
             
             serverIP = tfServer.getText();
             
-            //doConnect();
-            // sendUserInfo();
+            if(username.isEmpty() || password.isEmpty() || serverIP.isEmpty()) {
+               Alert alert = new Alert(AlertType.INFORMATION);
+               alert.setContentText("Please enter information into all fields");
+               alert.show();
+            }else{
+               //doConnect();
+               // sendUserInfo();
             
-            loginStage.close();
-            
+               loginStage.close();
+            }
          }
         });
         
@@ -164,7 +173,7 @@ public class Client extends Application{
         layout.add(label3, 0,2);
         layout.add(label4, 0, 3);
          
-        Scene scene = new Scene(layout, 250, 250);          
+        Scene scene = new Scene(layout, 250, 175);          
         loginStage.setTitle("RITCord Login");
         loginStage.setScene(scene);
         loginStage.showAndWait();   

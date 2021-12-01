@@ -62,13 +62,11 @@ public class Client extends Application{
       fpMid.setAlignment(Pos.CENTER);
       tfMsg.setPrefColumnCount(20);
       
-      /*
-      tfMsg.setOnAction(new EventHandler<WindowEvent>() {
-         public void handle(WindowEvent evt) {
-            //doSendMsg
+      tfMsg.setOnAction(new EventHandler<ActionEvent>() {
+         public void handle(ActionEvent evt) {
+            doSendMsg(tfMsg.getText());
          }
       });
-      */
       
       root.getChildren().addAll(fpTop, fpMid, btnSend);
       scene = new Scene(root, 500, 350);
@@ -106,8 +104,17 @@ public class Client extends Application{
       }
    }//end of doConnect()
    
-   private void sendMsg(){}
-   
+   /*
+   * doSendMsg Method: 
+   * Put the message in the TextArea and send to clients 
+   */
+   private void doSendMsg(String message) {
+      if(!tfMsg.getText().isEmpty()) {
+         taChat.appendText("<" + username + ">" + message + "\n");
+         tfMsg.setText("");
+      }
+      //idk how but this message has to be sent to the other clients that are on the server - Andy
+   } //end doSendMsg
    
    private void sendUserInfo(){
       //send username and password 

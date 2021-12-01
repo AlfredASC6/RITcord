@@ -1,4 +1,3 @@
-
 import javafx.application.Application;
 import javafx.event.*;
 import javafx.scene.*;
@@ -27,13 +26,13 @@ public class Client extends Application{
    private VBox root = new VBox(8);
 
    private TextArea taChat = new TextArea();
-   private TextField tfServer = new TextField();
-   private Label lblServer = new Label("Server");
+   private TextField tfMsg = new TextField();
+   private Label lblMsg = new Label("Message");
    private Button btnSend = new Button("Send");
   
    private String serverIP;   
    private Socket socket = null;
-   private Scanner in;
+   private Scanner scn;
    private PrintWriter pwt;
    private int SERVER_PORT = 32323;
    
@@ -53,21 +52,69 @@ public class Client extends Application{
       
       
       FlowPane fpTop = new FlowPane(8,8);
-      fpTop.getChildren().addAll(lblServer, tfServer, taChat);
+      fpTop.getChildren().addAll(taChat);
       fpTop.setAlignment(Pos.CENTER);
       
-      root.getChildren().addAll(fpTop, btnSend);
+      FlowPane fpMid = new FlowPane(8, 8);
+      fpMid.getChildren().addAll(lblMsg, tfMsg);
+      fpMid.setAlignment(Pos.CENTER);
+      tfMsg.setPrefColumnCount(20);
+      
+      tfMsg.setOnAction(new EventHandler<WindowEvent>() {
+         public void handle(WindowEvent evt) {
+            //doSendMsg
+         }
+      });
+      
+      root.getChildren().addAll(fpTop, fpMid, btnSend);
       scene = new Scene(root, 500, 350);
       stage.setScene(scene);
       stage.show();
-   }
-   public void sendUserInfo(){
       
+      stage.setOnCloseRequest(new EventHandler<WindowEvent>() {
+         public void handle(WindowEvent evt) {
+            //doDisconnect();
+         }
+      });
+   }//end of start
+   
+   private void doDisconnect(){
+      try{
+         scn.close();
+         pwt.close();
+         socket.close();
+      }
+      catch(IOException ioe){
+         Alert alert = new Alert(AlertType.ERROR, "Exception " + ioe);
+         alert.showAndWait(); 
+      }
+   }//end doDisconnect()
+   
+   public void doConnect(){
+      try{
+         socket = new Socket(serverIP, SERVER_PORT);
+         scn = new Scanner(new InputStreamReader(socket.getInputStream()));
+         pwt = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()));
+      }
+      catch(IOException ioe){
+         Alert alert = new Alert(AlertType.ERROR, "Exception " + ioe);
+         alert.showAndWait(); 
+      }
+   }//end of doConnect()
+   
+   private void sendMsg(){}
+   
+   
+   private void sendUserInfo(){
+      //send username and password 
+      pwt.println(username + "#" + password);
+      pwt.flush();
    }
    
+   
    /*
-   *doLogin Method: Create stage to send username and password to server 
-   *
+   * doLogin Method: 
+   * Create stage to send username and password to server 
    */
    private void doLogin(){
         Stage loginStage = new Stage();
@@ -75,7 +122,8 @@ public class Client extends Application{
          
         TextField tfUser = new TextField();
         TextField tfPass = new TextField();
-         
+        TextField tfServer = new TextField();
+        
         Button btnSubmit = new Button("Submit");
 
         btnSubmit.setOnAction(new EventHandler<ActionEvent>(){
@@ -84,7 +132,10 @@ public class Client extends Application{
             username = tfUser.getText();
             password = tfPass.getText();
             
-            //sendUserInfo();
+            serverIP = tfServer.getText();
+            
+            //doConnect();
+            // sendUserInfo();
             
             loginStage.close();
             
@@ -93,8 +144,9 @@ public class Client extends Application{
         
      
         Label label1 = new Label("RITCord Login");
-        Label label2 = new Label("Username:");
-        Label label3 = new Label("Password:");
+        Label label2 = new Label("Username: ");
+        Label label3 = new Label("Password: ");
+        Label label4 = new Label("Server: ");
          
         GridPane layout = new GridPane();
          
@@ -104,14 +156,18 @@ public class Client extends Application{
          
         layout.add(tfUser, 1,1);
         layout.add(tfPass, 1,2);
-        layout.add(btnSubmit, 1,3);
+        layout.add(tfServer, 1, 3);
+        layout.add(btnSubmit, 1,4);
         layout.add(label1, 1,0);
         layout.add(label2, 0,1);
         layout.add(label3, 0,2);
+        layout.add(label4, 0, 3);
          
-        Scene scene = new Scene(layout, 250, 150);          
+        Scene scene = new Scene(layout, 250, 250);          
         loginStage.setTitle("RITCord Login");
         loginStage.setScene(scene);
         loginStage.showAndWait();   
    }//end of doLogin
+   
+   
 }

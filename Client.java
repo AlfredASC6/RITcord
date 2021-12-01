@@ -17,8 +17,8 @@ import javafx.event.EventHandler.*;
 
 /**
  * Client - a class that displays a log in page and moderate chats
- * @author A.Franco, AErskine (add names if you contributed)
- * @version 11-29-21
+ * @author A.Franco, AErskine, W.Celentano (add names if you contributed)
+ * @version 12-1-21
  */
 public class Client extends Application{
 
@@ -28,7 +28,9 @@ public class Client extends Application{
 
    private TextArea taChat = new TextArea();
    private TextField tfServer = new TextField();
-   private Label lblServer = new Label("Server");
+   private Button btnConnect = new Button("Connect");
+   private Label lblServer = new Label("Server: ");
+   private TextField tfMessage = new TextField();
    private Button btnSend = new Button("Send");
   
    private String serverIP;   
@@ -53,14 +55,24 @@ public class Client extends Application{
       
       
       FlowPane fpTop = new FlowPane(8,8);
-      fpTop.getChildren().addAll(lblServer, tfServer, taChat);
+      fpTop.getChildren().addAll(lblServer, tfServer, btnConnect, taChat);
       fpTop.setAlignment(Pos.CENTER);
       
-      root.getChildren().addAll(fpTop, btnSend);
+      FlowPane fpBot = new FlowPane(8,8);
+      fpBot.getChildren().addAll(tfMessage, btnSend);
+      fpBot.setAlignment(Pos.CENTER);
+      
+      taChat.setPrefHeight(250);
+      taChat.setDisable(true);
+      tfMessage.setPrefWidth(400);
+      btnSend.setDefaultButton(true);
+      
+      root.getChildren().addAll(fpTop, fpBot);
       scene = new Scene(root, 500, 350);
       stage.setScene(scene);
       stage.show();
    }
+   
    public void sendUserInfo(){
       
    }
@@ -74,10 +86,11 @@ public class Client extends Application{
         loginStage.initModality(Modality.APPLICATION_MODAL);
          
         TextField tfUser = new TextField();
-        TextField tfPass = new TextField();
+        PasswordField tfPass = new PasswordField();
          
         Button btnSubmit = new Button("Submit");
-
+        btnSubmit.setDefaultButton(true);
+        
         btnSubmit.setOnAction(new EventHandler<ActionEvent>(){
          public void handle(ActionEvent e){
             //send user info here 

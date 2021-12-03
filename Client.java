@@ -97,6 +97,8 @@ public class Client extends Application {
          socket = new Socket(serverIP, SERVER_PORT);
          scn = new Scanner(new InputStreamReader(socket.getInputStream()));
          pwt = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()));
+         
+         recMsg();
       } catch (IOException ioe) {
          Alert alert = new Alert(AlertType.ERROR, "Exception " + ioe);
          alert.showAndWait();
@@ -112,6 +114,7 @@ public class Client extends Application {
          taChat.appendText("<" + username + ">" + message + "\n");
          tfMsg.setText("");
       }
+      recMsg();
       // idk how but this message has to be sent to the other clients that
       // server - Andy
       // once user is validated and logged in, any messages sent to server will be
@@ -120,6 +123,13 @@ public class Client extends Application {
       // client. client will only append taChat when it recieves msgs from server
    } // end doSendMsg
 
+   private void recMsg(){
+      while(scn.hasNextLine()){
+         String message = scn.nextLine();
+         taChat.appendText(message);
+      }
+   
+   }
    private void sendUserInfo() {
       // send username and password
       pwt.println(username + "#" + password);

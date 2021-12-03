@@ -35,6 +35,8 @@ public class Server extends Application {
    private ServerThread serverThread = null;
 
    private ServerSocket sSocket = null;
+   
+   private ArrayList<ClientThread> clients = null;
 
    public static void main(String[] args) {
       launch(args);
@@ -76,6 +78,7 @@ public class Server extends Application {
       public void run() {
          try {
             sSocket = new ServerSocket(SERVER_PORT);
+            acceptClients();
          } catch (Exception e) {
             System.out.println("Excpetion " + e);
          }
@@ -102,6 +105,11 @@ public class Server extends Application {
             // Open streams
             scn = new Scanner(new InputStreamReader(cSocket.getInputStream()));
             pwt = new PrintWriter(new OutputStreamWriter(cSocket.getOutputStream()));
+            
+            //let client know that streams are open
+            pwt.println("User Connnected!");
+            pwt.flush();
+            
          } catch (IOException ioe) {
             System.out.println(clientId + " IO Exception (ClientThread): " + ioe + "\n");
             return;
@@ -110,4 +118,23 @@ public class Server extends Application {
          System.out.println(clientId + " Client disconnected!\n");
       }// end of run
    }// end of ClientThread
+   
+   public void acceptClients(){
+   clients = new ArrayList<ClientThread>();
+      while(true){
+         try{
+            Socket socket = sSocket.accept();
+            ClientThread client = new ClientThread(socket);
+            Thread thread = new Thread(client);
+            thread.start();
+            clients.add(client);
+            
+            //use client arraylist to know how many people are on the server
+         }
+         
+         catch(IOException ioe){
+            System.out.println("Socket failed");
+         }
+      }
+   }//end of accpet clients
 }

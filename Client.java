@@ -8,7 +8,7 @@ import javafx.scene.control.Alert.AlertType;
 import javafx.scene.layout.*;
 import javafx.stage.*;
 import javafx.geometry.*;
-import javafx.fxml.*;
+//import javafx.fxml.*;
 import java.util.*;
 import java.io.*;
 import java.net.*;
@@ -24,6 +24,9 @@ import javafx.event.EventHandler.*;
 public class Client extends Application {
 
    private Stage stage;
+   private Stage loginStage;
+   private Stage signUpStage;
+   private Stage forgotPassStage;
    private Scene scene;
    private VBox root = new VBox(8);
 
@@ -130,88 +133,257 @@ public class Client extends Application {
     * doLogin Method:
     * Create stage to send username and password to server
     */
-   public void doLogin() throws Exception {
-      Parent root = FXMLLoader.load(getClass().getResource("Login.fxml"));
-      Stage loginStage = new Stage();
-      Scene scene = new Scene(root);
+   public void doLogin() {
+
+      loginStage = new Stage();
+      AnchorPane login = new AnchorPane();
+
+      login.setPrefSize(640, 400);
+
+      Button btnSignUp = new Button("Sign Up");
+      btnSignUp.setLayoutX(557);
+      btnSignUp.setLayoutY(329);
+      btnSignUp.setPrefSize(58, 25);
+      btnSignUp.setTextAlignment(TextAlignment.CENTER);
+
+      Button btnLogin = new Button("Login");
+      btnLogin.setLayoutX(492);
+      btnLogin.setLayoutY(329);
+      btnLogin.setPrefSize(58, 25);
+      btnLogin.setTextAlignment(TextAlignment.CENTER);
+
+      Button btnFgtPass = new Button("Forgot Password");
+      btnFgtPass.setLayoutX(492);
+      btnFgtPass.setLayoutY(361);
+      btnFgtPass.setPrefSize(123, 25);
+      btnFgtPass.setTextAlignment(TextAlignment.CENTER);
+
+      Button btnConnect = new Button("Connect");
+      btnConnect.setLayoutX(290);
+      btnConnect.setLayoutY(361);
+      btnConnect.setPrefSize(149, 25);
+      btnConnect.setTextAlignment(TextAlignment.CENTER);
+
       loginStage.initModality(Modality.APPLICATION_MODAL);
 
       TextField tfUser = new TextField();
+      tfUser.setPromptText("Username");
+      tfUser.setLayoutX(30);
+      tfUser.setLayoutY(329);
+      tfUser.setPrefSize(210, 25);
+
       PasswordField tfPass = new PasswordField();
+      tfPass.setLayoutX(259);
+      tfPass.setLayoutY(329);
+      tfPass.setPrefSize(210, 25);
+      tfPass.setPromptText("Password");
+
       TextField tfServer = new TextField();
+      tfServer.setPromptText("Server IP");
+      tfServer.setLayoutX(30);
+      tfServer.setLayoutY(361);
+      tfServer.setPrefSize(210, 25);
 
-      Button btnSubmit = new Button("Submit");
-      btnSubmit.setDefaultButton(true);
+      Label ritCordLabel = new Label("RITcord");
+      ritCordLabel.setLayoutX(171);
+      ritCordLabel.setLayoutY(14);
+      ritCordLabel.setPrefSize(298, 148);
+      ritCordLabel.setAlignment(Pos.CENTER);
+      ritCordLabel.setTextAlignment(TextAlignment.CENTER);
+      ritCordLabel.setTextOverrun(OverrunStyle.WORD_ELLIPSIS);
+      ritCordLabel.setFont(Font.font(64));
 
-      btnSubmit.setOnAction(new EventHandler<ActionEvent>() {
+      login.getChildren().addAll(btnSignUp, btnLogin, btnFgtPass, btnConnect, tfUser, tfPass, tfServer, ritCordLabel);
+
+      btnSignUp.setOnAction(new EventHandler<ActionEvent>() {
          public void handle(ActionEvent e) {
-            // send user info here
-            username = tfUser.getText();
-            password = tfPass.getText();
-
-            serverIP = tfServer.getText();
-
-            if (username.isEmpty() || password.isEmpty() || serverIP.isEmpty()) {
-               Alert alert = new Alert(AlertType.INFORMATION);
-               alert.setContentText("Please enter information into all fields");
-               alert.show();
-            } else {
-               // doConnect();
-               // sendUserInfo();
-
-               loginStage.close();
-            }
+            doSignup();
          }
       });
-
-      // Label label1 = new Label("RITCord Login");
-      // Label label2 = new Label("Username: ");
-      // Label label3 = new Label("Password: ");
-      // Label label4 = new Label("Server: ");
-
-      // VBox layout = new Vbox();
-
-      // layout.prefHeight(400);
-      // layout.prefWidth(640);
-
-      // layout.add(tfUser, 1,1);
-      // layout.add(tfPass, 1,2);
-      // layout.add(tfServer, 1, 3);
-      // layout.add(btnSubmit, 1,4);
-      // layout.add(label1, 1,0);
-      // layout.add(label2, 0,1);
-      // layout.add(label3, 0,2);
-      // layout.add(label4, 0, 3);
-
+      btnFgtPass.setOnAction(new EventHandler<ActionEvent>() {
+         public void handle(ActionEvent e) {
+            doForgotPass();
+         }
+      });
+      Scene scene = new Scene(login);
       loginStage.setTitle("RITCord Login");
       loginStage.setScene(scene);
       loginStage.showAndWait();
    }// end of doLogin
-    // switches to signup window
 
-   public void switchToSignup(ActionEvent event) throws Exception {
-      Parent root = FXMLLoader.load(getClass().getResource("Signup.fxml"));
-      stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-      scene = new Scene(root);
-      stage.setScene(scene);
-      stage.show();
+   public void doSignup() {
+
+      signUpStage = new Stage();
+      AnchorPane signUp = new AnchorPane();
+
+      signUpStage.initModality(Modality.APPLICATION_MODAL);
+
+      signUp.setPrefSize(428, 280);
+
+      Button btnCreateAcc = new Button("Create Account");
+      btnCreateAcc.setLayoutX(318);
+      btnCreateAcc.setLayoutY(241);
+
+      Button btnReturnLogin = new Button("Back to Login");
+      btnReturnLogin.setLayoutX(16);
+      btnReturnLogin.setLayoutY(241);
+      btnReturnLogin.setPrefSize(116, 25);
+      btnReturnLogin.setTextAlignment(TextAlignment.CENTER);
+
+      TextField tfUser = new TextField();
+      tfUser.setPromptText("Username");
+      tfUser.setLayoutX(42);
+      tfUser.setLayoutY(64);
+      tfUser.setPrefSize(198, 35);
+
+      PasswordField tfPass = new PasswordField();
+      tfPass.setLayoutX(42);
+      tfPass.setLayoutY(116);
+      tfPass.setPrefSize(198, 35);
+      tfPass.setPromptText("Password");
+
+      PasswordField tfVerifyPass = new PasswordField();
+      tfVerifyPass.setLayoutX(42);
+      tfVerifyPass.setLayoutY(168);
+      tfVerifyPass.setPrefSize(198, 35);
+      tfVerifyPass.setPromptText("Verify Password");
+
+      Label lblSignUp = new Label("RITcord Signup");
+      lblSignUp.setLayoutX(16);
+      lblSignUp.setLayoutY(14);
+      lblSignUp.setPrefSize(300, 17);
+      lblSignUp.setTextAlignment(TextAlignment.CENTER);
+      lblSignUp.setFont(Font.font(22));
+
+      Label lblUser = new Label("Username:");
+      lblUser.setLayoutX(42);
+      lblUser.setLayoutY(47);
+      lblUser.setPrefSize(116, 17);
+
+      Label lblPass = new Label("Password");
+      lblPass.setLayoutX(42);
+      lblPass.setLayoutY(99);
+      lblPass.setPrefSize(300, 17);
+
+      Label lblVerifyPass = new Label("Verify Password");
+      lblVerifyPass.setLayoutX(42);
+      lblVerifyPass.setLayoutY(151);
+      lblVerifyPass.setPrefSize(300, 17);
+
+      signUp.getChildren().addAll(btnCreateAcc, btnReturnLogin, tfPass, tfVerifyPass, tfUser, lblSignUp, lblPass,
+            lblUser, lblVerifyPass);
+
+      Scene scene = new Scene(signUp);
+      signUpStage.setTitle("Sign Up");
+      signUpStage.setScene(scene);
+      signUpStage.showAndWait();
+      btnReturnLogin.setOnAction(new EventHandler<ActionEvent>() {
+         public void handle(ActionEvent e) {
+            closeStages();
+            loginStage.showAndWait();
+         }
+      });
    }
 
-   // switches to login window
-   public void switchToLogin(ActionEvent event) throws Exception {
-      Parent root = FXMLLoader.load(getClass().getResource("Login.fxml"));
-      stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-      scene = new Scene(root);
-      stage.setScene(scene);
-      stage.show();
+   public void doForgotPass() {
+
+      forgotPassStage = new Stage();
+      AnchorPane forgotPass = new AnchorPane();
+
+      forgotPassStage.initModality(Modality.APPLICATION_MODAL);
+
+      forgotPass.setPrefSize(445, 400);
+
+      Button btnChangePass = new Button("Change Password");
+      btnChangePass.setLayoutX(318);
+      btnChangePass.setLayoutY(361);
+
+      Button btnReturnLogin = new Button("Back to Login");
+      btnReturnLogin.setLayoutX(23);
+      btnReturnLogin.setLayoutY(361);
+      btnReturnLogin.setPrefSize(116, 25);
+      btnReturnLogin.setTextAlignment(TextAlignment.CENTER);
+
+      TextField tfUser = new TextField();
+      tfUser.setPromptText("Username");
+      tfUser.setLayoutX(49);
+      tfUser.setLayoutY(178);
+      tfUser.setPrefSize(198, 35);
+
+      TextField tfResetCode = new TextField();
+      tfResetCode.setPromptText("Reset Code");
+      tfResetCode.setLayoutX(49);
+      tfResetCode.setLayoutY(99);
+      tfResetCode.setPrefSize(230, 51);
+
+      PasswordField tfPass = new PasswordField();
+      tfPass.setLayoutX(49);
+      tfPass.setLayoutY(230);
+      tfPass.setPrefSize(198, 35);
+      tfPass.setPromptText("New Password");
+
+      PasswordField tfVerifyPass = new PasswordField();
+      tfVerifyPass.setLayoutX(49);
+      tfVerifyPass.setLayoutY(282);
+      tfVerifyPass.setPrefSize(198, 35);
+      tfVerifyPass.setPromptText("Verify Password");
+
+      Label lblForgot = new Label("Forgot Password");
+      lblForgot.setLayoutX(26);
+      lblForgot.setLayoutY(14);
+      lblForgot.setTextAlignment(TextAlignment.CENTER);
+      lblForgot.setFont(Font.font(22));
+
+      Label lblUser = new Label("Username:");
+      lblUser.setLayoutX(49);
+      lblUser.setLayoutY(161);
+      lblUser.setPrefSize(116, 17);
+
+      Label lblInfo = new Label(
+            "If you have forgotten your password, please contact one of the developers to assist you with resetting your password.");
+      lblInfo.setLayoutX(49);
+      lblInfo.setLayoutY(58);
+      lblInfo.setPrefSize(338, 35);
+      lblInfo.setWrapText(true);
+
+      Label lblPassRequirements = new Label(
+            "Password must contain a minimum of 6 characters; 1 uppercase, 1 number and a special character. (!@#$%&amp;*)");
+      lblPassRequirements.setLayoutX(49);
+      lblPassRequirements.setLayoutY(317);
+      lblPassRequirements.setPrefSize(345, 69);
+      lblPassRequirements.setWrapText(true);
+      lblPassRequirements.setOpacity(0.50);
+      lblPassRequirements.setAlignment(Pos.TOP_LEFT);
+
+      Label lblPass = new Label("Password");
+      lblPass.setLayoutX(49);
+      lblPass.setLayoutY(213);
+
+      Label lblVerifyPass = new Label("Verify Password");
+      lblVerifyPass.setLayoutX(49);
+      lblVerifyPass.setLayoutY(265);
+
+      Label lbl = new Label("Verify Password");
+      lblVerifyPass.setLayoutX(49);
+      lblVerifyPass.setLayoutY(265);
+
+      forgotPass.getChildren().addAll(btnChangePass, btnReturnLogin, tfPass, tfVerifyPass, tfUser, lblForgot, lblPass,
+            lblUser, lblVerifyPass, lblPassRequirements, lblInfo, tfResetCode);
+
+      Scene scene = new Scene(forgotPass);
+      forgotPassStage.setTitle("Sign Up");
+      forgotPassStage.setScene(scene);
+      forgotPassStage.showAndWait();
+      btnReturnLogin.setOnAction(new EventHandler<ActionEvent>() {
+         public void handle(ActionEvent e) {
+            closeStages();
+            loginStage.showAndWait();
+         }
+      });
    }
 
-   // switches window to forgot password
-   public void switchToForgot(ActionEvent event) throws Exception {
-      Parent root = FXMLLoader.load(getClass().getResource("ForgotPass.fxml"));
-      stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-      scene = new Scene(root);
-      stage.setScene(scene);
-      stage.show();
+   public void closeStages() {
+      loginStage.close();
+      signUpStage.close();
    }
 }

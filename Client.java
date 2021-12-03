@@ -24,10 +24,10 @@ import javafx.event.EventHandler.*;
 public class Client extends Application {
 
    private Stage stage;
-   private Stage loginStage;
-   private Stage signUpStage;
-   private Stage forgotPassStage;
    private Scene scene;
+   private Scene sceneLogin;
+   private Scene sceneSignUp;
+   private Scene sceneForgotPass;
    private VBox root = new VBox(8);
 
    private TextArea taChat = new TextArea();
@@ -74,8 +74,6 @@ public class Client extends Application {
 
       root.getChildren().addAll(fpTop, fpMid, btnSend);
       scene = new Scene(root, 500, 350);
-      stage.setScene(scene);
-      stage.show();
 
       stage.setOnCloseRequest(new EventHandler<WindowEvent>() {
          public void handle(WindowEvent evt) {
@@ -134,8 +132,6 @@ public class Client extends Application {
     * Create stage to send username and password to server
     */
    public void doLogin() {
-
-      loginStage = new Stage();
       AnchorPane login = new AnchorPane();
 
       login.setPrefSize(640, 400);
@@ -163,8 +159,6 @@ public class Client extends Application {
       btnConnect.setLayoutY(361);
       btnConnect.setPrefSize(149, 25);
       btnConnect.setTextAlignment(TextAlignment.CENTER);
-
-      loginStage.initModality(Modality.APPLICATION_MODAL);
 
       TextField tfUser = new TextField();
       tfUser.setPromptText("Username");
@@ -205,18 +199,13 @@ public class Client extends Application {
             doForgotPass();
          }
       });
-      Scene scene = new Scene(login);
-      loginStage.setTitle("RITCord Login");
-      loginStage.setScene(scene);
-      loginStage.showAndWait();
+      sceneLogin = new Scene(login);
+      stage.setScene(sceneLogin);
+      stage.show();
    }// end of doLogin
 
    public void doSignup() {
-
-      signUpStage = new Stage();
       AnchorPane signUp = new AnchorPane();
-
-      signUpStage.initModality(Modality.APPLICATION_MODAL);
 
       signUp.setPrefSize(428, 280);
 
@@ -255,6 +244,15 @@ public class Client extends Application {
       lblSignUp.setTextAlignment(TextAlignment.CENTER);
       lblSignUp.setFont(Font.font(22));
 
+      Label lblPassRequirements = new Label(
+            "Password must contain a minimum of 6 characters; 1 uppercase, 1 number and a special character. (!@#$%&amp;*)");
+      lblPassRequirements.setLayoutX(42);
+      lblPassRequirements.setLayoutY(203);
+      lblPassRequirements.setPrefSize(345, 69);
+      lblPassRequirements.setWrapText(true);
+      lblPassRequirements.setOpacity(0.50);
+      lblPassRequirements.setAlignment(Pos.TOP_LEFT);
+
       Label lblUser = new Label("Username:");
       lblUser.setLayoutX(42);
       lblUser.setLayoutY(47);
@@ -270,27 +268,22 @@ public class Client extends Application {
       lblVerifyPass.setLayoutY(151);
       lblVerifyPass.setPrefSize(300, 17);
 
-      signUp.getChildren().addAll(btnCreateAcc, btnReturnLogin, tfPass, tfVerifyPass, tfUser, lblSignUp, lblPass,
+      signUp.getChildren().addAll(lblPassRequirements, btnCreateAcc, btnReturnLogin, tfPass, tfVerifyPass, tfUser,
+            lblSignUp, lblPass,
             lblUser, lblVerifyPass);
 
-      Scene scene = new Scene(signUp);
-      signUpStage.setTitle("Sign Up");
-      signUpStage.setScene(scene);
-      signUpStage.showAndWait();
+      sceneSignUp = new Scene(signUp);
+      stage.setScene(sceneSignUp);
       btnReturnLogin.setOnAction(new EventHandler<ActionEvent>() {
          public void handle(ActionEvent e) {
-            closeStages();
-            loginStage.showAndWait();
+            doLogin();
          }
       });
    }
 
    public void doForgotPass() {
 
-      forgotPassStage = new Stage();
       AnchorPane forgotPass = new AnchorPane();
-
-      forgotPassStage.initModality(Modality.APPLICATION_MODAL);
 
       forgotPass.setPrefSize(445, 400);
 
@@ -367,23 +360,15 @@ public class Client extends Application {
       lblVerifyPass.setLayoutX(49);
       lblVerifyPass.setLayoutY(265);
 
-      forgotPass.getChildren().addAll(btnChangePass, btnReturnLogin, tfPass, tfVerifyPass, tfUser, lblForgot, lblPass,
-            lblUser, lblVerifyPass, lblPassRequirements, lblInfo, tfResetCode);
+      forgotPass.getChildren().addAll(lblForgot, lblPass, lblUser, lblVerifyPass, lblPassRequirements,
+            lblInfo, tfResetCode, btnChangePass, btnReturnLogin, tfPass, tfVerifyPass, tfUser);
 
-      Scene scene = new Scene(forgotPass);
-      forgotPassStage.setTitle("Sign Up");
-      forgotPassStage.setScene(scene);
-      forgotPassStage.showAndWait();
+      sceneForgotPass = new Scene(forgotPass);
+      stage.setScene(sceneForgotPass);
       btnReturnLogin.setOnAction(new EventHandler<ActionEvent>() {
          public void handle(ActionEvent e) {
-            closeStages();
-            loginStage.showAndWait();
+            doLogin();
          }
       });
-   }
-
-   public void closeStages() {
-      loginStage.close();
-      signUpStage.close();
    }
 }

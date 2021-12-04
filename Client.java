@@ -8,7 +8,6 @@ import javafx.scene.control.Alert.AlertType;
 import javafx.scene.layout.*;
 import javafx.stage.*;
 import javafx.geometry.*;
-//import javafx.fxml.*;
 import java.util.*;
 import java.io.*;
 import java.net.*;
@@ -24,7 +23,7 @@ import javafx.event.EventHandler.*;
 public class Client extends Application {
 
    private Stage stage;
-   private Scene scene;
+   private Scene sceneMain;
    private Scene sceneLogin;
    private Scene sceneSignUp;
    private Scene sceneForgotPass;
@@ -43,6 +42,8 @@ public class Client extends Application {
 
    static String username;
    static String password;
+   private boolean userVerified;
+   private String masterCode = "123";
 
    public static void main(String[] args) {
       launch(args);
@@ -73,11 +74,13 @@ public class Client extends Application {
       });
 
       root.getChildren().addAll(fpTop, fpMid, btnSend);
-      scene = new Scene(root, 500, 350);
+      sceneMain = new Scene(root, 500, 350);
 
       stage.setOnCloseRequest(new EventHandler<WindowEvent>() {
          public void handle(WindowEvent evt) {
             // doDisconnect();
+            // doDisconnect will make it so you cannot close the app. scn is not initialized
+            // apparently...
          }
       });
    }// end of start
@@ -93,15 +96,19 @@ public class Client extends Application {
       }
    }// end doDisconnect()
 
-   public void doConnect() {
+   public void doConnect(String _serverIP) {
+      serverIP = _serverIP;
       try {
          socket = new Socket(serverIP, SERVER_PORT);
          scn = new Scanner(new InputStreamReader(socket.getInputStream()));
          pwt = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()));
-         
-         recMsg();
+
       } catch (IOException ioe) {
          Alert alert = new Alert(AlertType.ERROR, "Exception " + ioe);
+         alert.showAndWait();
+      }
+      if (scn.nextLine().equals("Client Connected")) {
+         Alert alert = new Alert(AlertType.INFORMATION, "Connected to server");
          alert.showAndWait();
       }
    }// end of doConnect()
@@ -123,23 +130,37 @@ public class Client extends Application {
       // as soon as server recieves, it resends to all clients, even the original
       // client. client will only append taChat when it recieves msgs from server
    } // end doSendMsg
+   // recMsg takes any incoming information from server. Added condition to check
+   // whether it is a command or a message.
 
-   private void recMsg(){
-      while(scn.hasNextLine()){
-         String message = scn.nextLine();
-         taChat.appendText(message);
+   private void recMsg() {
+      if (!scn.nextLine().contains("!err")) {
+         while (scn.hasNextLine()) {
+            String message = scn.nextLine();
+            taChat.appendText(message);
+         }
       }
-   
    }
-   private void sendUserInfo() {
-      // send username and password
-      pwt.println(username + "#" + password);
+
+   // Sends user and pass to server.
+   private void sendUserInfo(String _username, String _password) {
+      username = _username;
+      password = _password;
+      pwt.println("!cmd" + username + "#" + password);
       pwt.flush();
+   }
+
+   private void doPassChange(String resetCode, String _user, String _pass) {
+      // check if resetCode is correct, then call sendUserInfo(); output alert if any
+      // value is wrong
+      // IE resetCode is wrong or password does not have minimum requirements
+      // Once done, show alert to confirm account was made and change scene to
+      // sceneMain
    }
 
    /*
     * doLogin Method:
-    * Create stage to send username and password to server
+    * Changes stage to login scene.
     */
    public void doLogin() {
       AnchorPane login = new AnchorPane();
@@ -209,10 +230,30 @@ public class Client extends Application {
             doForgotPass();
          }
       });
+      btnLogin.setOnAction(new EventHandler<ActionEvent>() {
+         public void handle(ActionEvent e) {
+            sendUserInfo(tfUser.getText(), tfPass.getText());
+            if (userVerified) {
+               stage.setScene(sceneMain);
+            } else {
+               Alert alert = new Alert(AlertType.INFORMATION, "Username or password is incorrect.");
+               alert.showAndWait();
+            }
+         }
+      });
+      btnConnect.setOnAction(new EventHandler<ActionEvent>() {
+         public void handle(ActionEvent e) {
+            doConnect(tfServer.getText());
+         }
+      });
       sceneLogin = new Scene(login);
       stage.setScene(sceneLogin);
       stage.show();
    }// end of doLogin
+   /*
+    * doSignup:
+    * Changes stage to signup scene.
+    */
 
    public void doSignup() {
       AnchorPane signUp = new AnchorPane();
@@ -255,7 +296,7 @@ public class Client extends Application {
       lblSignUp.setFont(Font.font(22));
 
       Label lblPassRequirements = new Label(
-            "Password must contain a minimum of 6 characters; 1 uppercase, 1 number and a special character. (!@#$%&amp;*)");
+            "Password must contain a minimum of 6 characters; 1 uppercase, 1 number and a special character. (!@#$%&*)");
       lblPassRequirements.setLayoutX(42);
       lblPassRequirements.setLayoutY(203);
       lblPassRequirements.setPrefSize(345, 69);
@@ -350,7 +391,7 @@ public class Client extends Application {
       lblInfo.setWrapText(true);
 
       Label lblPassRequirements = new Label(
-            "Password must contain a minimum of 6 characters; 1 uppercase, 1 number and a special character. (!@#$%&amp;*)");
+            "Password must contain a minimum of 6 characters; 1 uppercase, 1 number and a special character. (!@#$%&*)");
       lblPassRequirements.setLayoutX(49);
       lblPassRequirements.setLayoutY(317);
       lblPassRequirements.setPrefSize(345, 69);
@@ -378,6 +419,16 @@ public class Client extends Application {
       btnReturnLogin.setOnAction(new EventHandler<ActionEvent>() {
          public void handle(ActionEvent e) {
             doLogin();
+         }
+      });
+      btnChangePass.setOnAction(new EventHandler<ActionEvent>() {
+         public void handle(ActionEvent e) {
+            if (tfPass.getText().equals(tfVerifyPass.getText()) && tfResetCode.getText().equals(masterCode)) {
+               doPassChange(tfResetCode.getText(), tfUser.getText(), tfPass.getText());
+            } else {
+               Alert alert = new Alert(AlertType.ERROR, "Passwords do not match or reset code is incorrect");
+               alert.showAndWait();
+            }
          }
       });
    }

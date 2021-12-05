@@ -65,6 +65,8 @@ public class Server extends Application implements EventHandler<ActionEvent>{
       button.setOnAction(this);
       
       scene = new Scene(root, 400, 250);
+      stage.setX(800);
+      stage.setY(200);
       stage.setScene(scene);
       stage.show();
    }
@@ -110,7 +112,7 @@ public class Server extends Application implements EventHandler<ActionEvent>{
          Scanner scn = null;
          PrintWriter pwt = null;
 
-         taLog.appendText(clientId + " Client connected!\n");
+         //taLog.appendText(clientId + " Client connected!\n");
 
          try {
             // Open streams
@@ -118,13 +120,24 @@ public class Server extends Application implements EventHandler<ActionEvent>{
             pwt = new PrintWriter(new OutputStreamWriter(cSocket.getOutputStream()));
             
             //let client know that streams are open
-            pwt.println("User Connnected!");
+            pwt.println("Client Connected");
             pwt.flush();
             
          } catch (IOException ioe) {
             taLog.appendText(clientId + " IO Exception (ClientThread): " + ioe + "\n");
             return;
          }
+         while(scn.hasNextLine()){
+           String line = scn.nextLine();
+           pwt.println(line);
+           pwt.flush();
+           
+           if(scn.nextLine().equals("Client Connected")){
+               pwt.println("svr: Welcome to the server!");
+               pwt.flush();
+           }
+         }
+         
       }// end of run
    }// end of ClientThread
    

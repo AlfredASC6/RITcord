@@ -75,7 +75,8 @@ public class Client extends Application {
 
       root.getChildren().addAll(fpTop, fpMid, btnSend);
       sceneMain = new Scene(root, 500, 350);
-
+      stage.setX(100);
+      stage.setY(200);
       stage.setOnCloseRequest(new EventHandler<WindowEvent>() {
          public void handle(WindowEvent evt) {
             // doDisconnect();
@@ -120,9 +121,14 @@ public class Client extends Application {
     * Put the message in the TextArea and send to clients
     */
    private void doSendMsg(String message) {
-      if (!tfMsg.getText().isEmpty()) {
-         taChat.appendText("<" + username + ">" + message + "\n");
-         tfMsg.setText("");
+      if (tfMsg.getText().isEmpty()) {
+         Alert alert = new Alert(AlertType.INFORMATION, "Please Type a message to be sent");
+         alert.showAndWait();
+         return;
+      }
+      else{  
+         pwt.println("<" + username + ">" + message + "\n");
+         pwt.flush();
       }
       recMsg();
       // idk how but this message has to be sent to the other clients that
@@ -136,21 +142,21 @@ public class Client extends Application {
    // whether it is a command or a message.
 
    private void recMsg() {
-      if (!scn.nextLine().contains("!err")) {
-         while (scn.hasNextLine()) {
-            String message = scn.nextLine();
-            taChat.appendText(message);
+      while (scn.hasNextLine()) {
+         
+          String message = scn.nextLine();
+          taChat.appendText(message);
          }
-      }
+      
    }
 
    // Sends user and pass to server.
    private void sendUserInfo(String _username, String _password) {
       username = _username;
       password = _password;
-      doConnect("localhost");
-      pwt.println("!cmd" + username + "#" + password);
-      pwt.flush();
+      //doConnect("localhost");
+      //pwt.println("!cmd" + username + "#" + password);
+      //pwt.flush();
    }
 
    private void doPassChange(String resetCode, String _user, String _pass) {
@@ -247,6 +253,8 @@ public class Client extends Application {
       btnConnect.setOnAction(new EventHandler<ActionEvent>() {
          public void handle(ActionEvent e) {
             doConnect(tfServer.getText());
+            sendUserInfo(tfUser.getText(), tfPass.getText());
+            stage.setScene(sceneMain);
          }
       });
       sceneLogin = new Scene(login);
@@ -340,6 +348,7 @@ public class Client extends Application {
             if(tfPass.getText().equals(tfVerifyPass.getText())){
                sendUserInfo(tfUser.getText(), tfPass.getText());
                doConnect("localhost");
+               stage.setScene(sceneMain);
             }
             else{
                Alert alert = new Alert(AlertType.ERROR, "Passwords do not match!");

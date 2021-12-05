@@ -131,13 +131,6 @@ public class Server extends Application implements EventHandler<ActionEvent> {
          while (scn.hasNextLine()) {
             // this is going to double print line.
             String line = scn.nextLine();
-            pwt.println(line);
-            pwt.flush();
-
-            if (scn.nextLine().equals("Client Connected")) {
-               pwt.println("svr: Welcome to the server!");
-               pwt.flush();
-            }
             if (line.contains("!cmd")) {
                HashMap<String, String> map = new HashMap<>();
                line.replace("!cmd", "");
@@ -147,6 +140,10 @@ public class Server extends Application implements EventHandler<ActionEvent> {
                pwm.generateSecurePassword(userInfo[1], map.get(userInfo[0]));
                // secure password needs to be placed into file @ THE SAME INDEX AS THE USER
                // DATA!!.
+            }
+            else if(line.contains("<")){
+               pwt.println(line);
+               pwt.flush();
             }
          }
       }// end of run

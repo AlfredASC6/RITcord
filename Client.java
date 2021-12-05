@@ -102,15 +102,17 @@ public class Client extends Application {
          socket = new Socket(serverIP, SERVER_PORT);
          scn = new Scanner(new InputStreamReader(socket.getInputStream()));
          pwt = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()));
-
-      } catch (IOException ioe) {
-         Alert alert = new Alert(AlertType.ERROR, "Exception " + ioe);
-         alert.showAndWait();
-      }
-      if (scn.nextLine().equals("Client Connected")) {
+         
+         if (scn.nextLine().equals("Client Connected")) {
          Alert alert = new Alert(AlertType.INFORMATION, "Connected to server");
          alert.showAndWait();
       }
+
+      } catch (IOException ioe) {
+         Alert alert = new Alert(AlertType.ERROR, "Cannot open Sockets " + ioe);
+         alert.showAndWait();
+      }
+
    }// end of doConnect()
 
    /*

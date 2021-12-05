@@ -103,11 +103,11 @@ public class Client extends Application {
          socket = new Socket(serverIP, SERVER_PORT);
          scn = new Scanner(new InputStreamReader(socket.getInputStream()));
          pwt = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()));
-         
+
          if (scn.nextLine().equals("Client Connected")) {
-         Alert alert = new Alert(AlertType.INFORMATION, "Connected to server");
-         alert.showAndWait();
-      }
+            Alert alert = new Alert(AlertType.INFORMATION, "Connected to server");
+            alert.showAndWait();
+         }
 
       } catch (IOException ioe) {
          Alert alert = new Alert(AlertType.ERROR, "Cannot open Sockets " + ioe);
@@ -125,8 +125,7 @@ public class Client extends Application {
          Alert alert = new Alert(AlertType.INFORMATION, "Please Type a message to be sent");
          alert.showAndWait();
          return;
-      }
-      else{  
+      } else {
          pwt.println("<" + username + ">" + message + "\n");
          pwt.flush();
       }
@@ -138,25 +137,25 @@ public class Client extends Application {
       // as soon as server recieves, it resends to all clients, even the original
       // client. client will only append taChat when it recieves msgs from server
    } // end doSendMsg
-   // recMsg takes any incoming information from server. Added condition to check
-   // whether it is a command or a message.
+     // recMsg takes any incoming information from server. Added condition to check
+     // whether it is a command or a message.
 
    private void recMsg() {
       while (scn.hasNextLine()) {
-         
-          String message = scn.nextLine();
-          taChat.appendText(message);
-         }
-      
+
+         String message = scn.nextLine();
+         taChat.appendText(message);
+      }
+
    }
 
    // Sends user and pass to server.
    private void sendUserInfo(String _username, String _password) {
       username = _username;
       password = _password;
-      //doConnect("localhost");
-      //pwt.println("!cmd" + username + "#" + password);
-      //pwt.flush();
+      // doConnect("localhost");
+      pwt.println("!cmd" + username + "#" + password);
+      pwt.flush();
    }
 
    private void doPassChange(String resetCode, String _user, String _pass) {
@@ -261,7 +260,7 @@ public class Client extends Application {
       stage.setScene(sceneLogin);
       stage.show();
    }// end of doLogin
-   
+
    /*
     * doSignup:
     * Changes stage to signup scene.
@@ -342,15 +341,14 @@ public class Client extends Application {
             doLogin();
          }
       });
-      
+
       btnCreateAcc.setOnAction(new EventHandler<ActionEvent>() {
          public void handle(ActionEvent e) {
-            if(tfPass.getText().equals(tfVerifyPass.getText())){
+            if (tfPass.getText().equals(tfVerifyPass.getText())) {
                sendUserInfo(tfUser.getText(), tfPass.getText());
                doConnect("localhost");
                stage.setScene(sceneMain);
-            }
-            else{
+            } else {
                Alert alert = new Alert(AlertType.ERROR, "Passwords do not match!");
                alert.showAndWait();
             }

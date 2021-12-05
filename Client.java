@@ -146,6 +146,7 @@ public class Client extends Application {
    private void sendUserInfo(String _username, String _password) {
       username = _username;
       password = _password;
+      doConnect("localhost");
       pwt.println("!cmd" + username + "#" + password);
       pwt.flush();
    }
@@ -250,6 +251,7 @@ public class Client extends Application {
       stage.setScene(sceneLogin);
       stage.show();
    }// end of doLogin
+   
    /*
     * doSignup:
     * Changes stage to signup scene.
@@ -328,6 +330,19 @@ public class Client extends Application {
       btnReturnLogin.setOnAction(new EventHandler<ActionEvent>() {
          public void handle(ActionEvent e) {
             doLogin();
+         }
+      });
+      
+      btnCreateAcc.setOnAction(new EventHandler<ActionEvent>() {
+         public void handle(ActionEvent e) {
+            if(tfPass.getText().equals(tfVerifyPass.getText())){
+               sendUserInfo(tfUser.getText(), tfPass.getText());
+               doConnect("localhost");
+            }
+            else{
+               Alert alert = new Alert(AlertType.ERROR, "Passwords do not match!");
+               alert.showAndWait();
+            }
          }
       });
    }

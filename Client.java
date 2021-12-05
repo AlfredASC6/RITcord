@@ -42,7 +42,7 @@ public class Client extends Application {
 
    static String username;
    static String password;
-   private boolean userVerified;
+   private boolean userVerified = false;
    private String masterCode = "123";
 
    public static void main(String[] args) {
@@ -79,9 +79,7 @@ public class Client extends Application {
       stage.setY(200);
       stage.setOnCloseRequest(new EventHandler<WindowEvent>() {
          public void handle(WindowEvent evt) {
-            // doDisconnect();
-            // doDisconnect will make it so you cannot close the app. scn is not initialized
-            // apparently...
+             doDisconnect();
          }
       });
    }// end of start
@@ -105,7 +103,7 @@ public class Client extends Application {
          pwt = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()));
 
          if (scn.nextLine().equals("Client Connected")) {
-            Alert alert = new Alert(AlertType.INFORMATION, "Connected to server");
+            Alert alert = new Alert(AlertType.INFORMATION, "Connected to server, login to continue.");
             alert.showAndWait();
          }
 
@@ -113,7 +111,7 @@ public class Client extends Application {
          Alert alert = new Alert(AlertType.ERROR, "Cannot open Sockets " + ioe);
          alert.showAndWait();
       }
-
+   userVerified = true;
    }// end of doConnect()
 
    /*
@@ -142,11 +140,17 @@ public class Client extends Application {
 
    private void recMsg() {
       while (scn.hasNextLine()) {
-
          String message = scn.nextLine();
-         taChat.appendText(message);
-      }
-
+         if(message.equals("Client Connected")){
+            taChat.appendText(username + " has entered the server \n");
+            return;
+         }
+         if(message.contains("<")){
+            taChat.appendText(message + "\n");
+            tfMsg.setText("");
+            return;
+         }
+      }//while
    }
 
    // Sends user and pass to server.
@@ -240,8 +244,8 @@ public class Client extends Application {
       });
       btnLogin.setOnAction(new EventHandler<ActionEvent>() {
          public void handle(ActionEvent e) {
-            sendUserInfo(tfUser.getText(), tfPass.getText());
             if (userVerified) {
+               sendUserInfo(tfUser.getText(), tfPass.getText());
                stage.setScene(sceneMain);
             } else {
                Alert alert = new Alert(AlertType.INFORMATION, "Username or password is incorrect.");
@@ -252,8 +256,6 @@ public class Client extends Application {
       btnConnect.setOnAction(new EventHandler<ActionEvent>() {
          public void handle(ActionEvent e) {
             doConnect(tfServer.getText());
-            sendUserInfo(tfUser.getText(), tfPass.getText());
-            stage.setScene(sceneMain);
          }
       });
       sceneLogin = new Scene(login);

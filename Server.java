@@ -19,7 +19,7 @@ import java.net.*;
  * @version 11-29-21
  */
 
-public class Server extends Application {
+public class Server extends Application implements EventHandler<ActionEvent>{
    private Stage stage;
    private Scene scene;
    private VBox root = new VBox(8);
@@ -45,15 +45,25 @@ public class Server extends Application {
    public void start(Stage _stage) {
       stage = _stage;
       stage.setTitle("Server Side");
-
-      root.getChildren().add(taLog);
+      
+      FlowPane fpTop = new FlowPane(8,8);
+      fpTop.getChildren().addAll(taLog);
+      
+      FlowPane fpMid = new FlowPane(8,8);
+      fpMid.getChildren().addAll(button);
+      fpMid.setAlignment(Pos.CENTER);
+      
+      
+      root.getChildren().addAll(fpTop, fpMid);
       stage.setOnCloseRequest(new EventHandler<WindowEvent>() {
          public void handle(WindowEvent evt) {
             System.exit(0);
          }
       });
-      taLog.setEditable(false);
-
+      //taLog.setEditable(false);
+      
+      button.setOnAction(this);
+      
       scene = new Scene(root, 400, 250);
       stage.setScene(scene);
       stage.show();
@@ -72,6 +82,7 @@ public class Server extends Application {
    public void doStart() {
       serverThread = new ServerThread();
       serverThread.start();
+      taLog.appendText("Server Started");
    }
 
    class ServerThread extends Thread {
@@ -80,7 +91,7 @@ public class Server extends Application {
             sSocket = new ServerSocket(SERVER_PORT);
             acceptClients();
          } catch (Exception e) {
-            System.out.println("Excpetion " + e);
+            taLog.appendText("Excpetion " + e);
          }
       }// end of run
    }// end of ServerThread
@@ -99,7 +110,7 @@ public class Server extends Application {
          Scanner scn = null;
          PrintWriter pwt = null;
 
-         System.out.println(clientId + " Client connected!\n");
+         taLog.appendText(clientId + " Client connected!\n");
 
          try {
             // Open streams
@@ -111,30 +122,29 @@ public class Server extends Application {
             pwt.flush();
             
          } catch (IOException ioe) {
-            System.out.println(clientId + " IO Exception (ClientThread): " + ioe + "\n");
+            taLog.appendText(clientId + " IO Exception (ClientThread): " + ioe + "\n");
             return;
          }
-
-         System.out.println(clientId + " Client disconnected!\n");
       }// end of run
    }// end of ClientThread
    
    public void acceptClients(){
-   clients = new ArrayList<ClientThread>();
+   //clients = new ArrayList<ClientThread>();
       while(true){
+      Socket cSocket = null;
          try{
-            Socket socket = sSocket.accept();
-            ClientThread client = new ClientThread(socket);
-            Thread thread = new Thread(client);
-            thread.start();
-            clients.add(client);
-            
-            //use client arraylist to know how many people are on the server
+            cSocket = sSocket.accept();
          }
          
          catch(IOException ioe){
-            System.out.println("Socket failed");
+            taLog.appendText("Socket failed");
          }
+         ClientThread client = new ClientThread(cSocket);
+         Thread thread = new Thread(client);
+         thread.start();
+         //clients.add(client);
+         client.start();
+         
       }
-   }//end of accpet clients
+   }//end of accept clients
 }

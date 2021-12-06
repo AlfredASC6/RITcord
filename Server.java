@@ -37,7 +37,7 @@ public class Server extends Application implements EventHandler<ActionEvent> {
 
    private ServerSocket sSocket = null;
 
-   private ArrayList<ClientThread> clients = null;
+   private Vector<ClientThread> clients = null;
 
    public static void main(String[] args) {
       launch(args);
@@ -60,7 +60,6 @@ public class Server extends Application implements EventHandler<ActionEvent> {
             System.exit(0);
          }
       });
-      // taLog.setEditable(false);
 
       button.setOnAction(this);
 
@@ -113,8 +112,6 @@ public class Server extends Application implements EventHandler<ActionEvent> {
          PrintWriter pwt = null;
          BufferedWriter bw = null;
 
-         // taLog.appendText(clientId + " Client connected!\n");
-
          try {
             // Open streams
             scn = new Scanner(new InputStreamReader(cSocket.getInputStream()));
@@ -142,15 +139,19 @@ public class Server extends Application implements EventHandler<ActionEvent> {
                // DATA!!.
             }
             else if(line.contains("<")){
-               pwt.println(line);
-               pwt.flush();
+               for(ClientThread client : clients){
+                  pwt.println(line);
+                  pwt.flush();
+                  
+                  taLog.appendText(line + "\n" + "this is a test");
+               }
             }
          }
       }// end of run
    }// end of ClientThread
 
    public void acceptClients() {
-      // clients = new ArrayList<ClientThread>();
+      clients = new Vector<ClientThread>();
       while (true) {
          Socket cSocket = null;
          try {
@@ -160,12 +161,11 @@ public class Server extends Application implements EventHandler<ActionEvent> {
          catch (IOException ioe) {
             taLog.appendText("Socket failed");
          }
-         ClientThread client = new ClientThread(cSocket);
-         Thread thread = new Thread(client);
+         ClientThread clientThread = new ClientThread(cSocket);
+         Thread thread = new Thread(clientThread);
          thread.start();
-         // clients.add(client);
-         client.start();
-
+         clients.add(clientThread);
+         clientThread.start();
       }
    }// end of accept clients
 }

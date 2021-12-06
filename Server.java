@@ -115,6 +115,7 @@ public class Server extends Application implements EventHandler<ActionEvent> {
          PrintWriter pwt = null;
          BufferedWriter bw = null;
          BufferedReader br = null;
+         DataInputStream dis = null;
          DataOutputStream dos = null;
          int currentIndex = 0;
 
@@ -140,14 +141,16 @@ public class Server extends Application implements EventHandler<ActionEvent> {
             taLog.appendText(line + "\n");
             if (line.contains("!cmd")) {
                HashMap<String, String> map = new HashMap<>();
-               line.replace("!cmd", "");
+               line = line.replace("!cmd", "");
                String[] userInfo = line.split("#");
                try {
-                  String currentLine;
                   br = new BufferedReader(new InputStreamReader(new FileInputStream(usernameData)));
+                  String currentLine;
                   while ((currentLine = br.readLine()) != null) {
                      if (currentLine.contains(userInfo[0])) {
                         userFound = true;
+                        br.reset();
+                        System.out.println("user found");
                         break;
                      } else {
                         currentIndex++;
@@ -161,15 +164,28 @@ public class Server extends Application implements EventHandler<ActionEvent> {
                   try {
                      bw = new BufferedWriter(new FileWriter(usernameData));
                      bw.write(userInfo[0] + ":" + map.get(userInfo[0]) + "\n");
+                     bw.flush();
                      System.out.println(userInfo[0] + ":" + map.get(userInfo[0]) + "\n");
                   } catch (Exception e) {
                      taLog.appendText("error creating user data file");
                   }
                   try {
                      dos = new DataOutputStream(new FileOutputStream(encryptedPass));
+                     dis = new DataInputStream(new FileInputStream(encryptedPass));
                      dos.writeUTF(pwm.generateSecurePassword(userInfo[1], map.get(userInfo[0])) + "\n");
                   } catch (Exception e) {
                      taLog.appendText("error creating encrypted password file");
+                  }
+               } else {
+                  try {
+                     String[] salt = null;
+                     String securePassword = null;
+                     for (int i = 0; i < currentIndex; i++) {
+                        securePassword = dis.readUTF();
+                        salt = br.readLine().split(":");
+                     }
+                     pwm.verifyUserPassword(userInfo[1], securePassword, salt[1]);
+                  } catch (Exception e) {
                   }
                }
             } else if (line.contains("<")) {

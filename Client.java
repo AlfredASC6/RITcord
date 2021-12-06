@@ -246,8 +246,9 @@ public class Client extends Application {
       });
       btnLogin.setOnAction(new EventHandler<ActionEvent>() {
          public void handle(ActionEvent e) {
+            sendUserInfo(tfUser.getText(), tfPass.getText());
+            userVerified = scn.nextBoolean();
             if (userVerified) {
-               sendUserInfo(tfUser.getText(), tfPass.getText());
                stage.setScene(sceneMain);
             } else {
                Alert alert = new Alert(AlertType.INFORMATION, "Username or password is incorrect.");
@@ -348,11 +349,9 @@ public class Client extends Application {
 
       btnCreateAcc.setOnAction(new EventHandler<ActionEvent>() {
          public void handle(ActionEvent e) {
+            doConnect("localhost");
             if (tfPass.getText().equals(tfVerifyPass.getText())) {
-               doConnect("localhost");
                sendUserInfo(tfUser.getText(), tfPass.getText());
-               pwt.write("test");
-               pwt.flush();
                stage.setScene(sceneMain);
             } else {
                Alert alert = new Alert(AlertType.ERROR, "Passwords do not match!");

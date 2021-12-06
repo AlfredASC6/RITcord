@@ -70,7 +70,6 @@ public class Client extends Application {
       tfMsg.setOnAction(new EventHandler<ActionEvent>() {
          public void handle(ActionEvent evt) {
             doSendMsg(tfMsg.getText());
-            tfMsg.setText("");
          }
       });
 
@@ -80,7 +79,7 @@ public class Client extends Application {
       stage.setY(200);
       stage.setOnCloseRequest(new EventHandler<WindowEvent>() {
          public void handle(WindowEvent evt) {
-             doDisconnect();
+            doDisconnect();
          }
       });
    }// end of start
@@ -106,13 +105,15 @@ public class Client extends Application {
          if (scn.nextLine().equals("Client Connected")) {
             Alert alert = new Alert(AlertType.INFORMATION, "Connected to server, login to continue.");
             alert.showAndWait();
+            pwt.write("Connection Confirmed");
+            pwt.flush();
          }
 
       } catch (IOException ioe) {
          Alert alert = new Alert(AlertType.ERROR, "Cannot open Sockets " + ioe);
          alert.showAndWait();
       }
-   userVerified = true;
+      userVerified = true;
    }// end of doConnect()
 
    /*
@@ -142,15 +143,16 @@ public class Client extends Application {
    private void recMsg() {
       while (scn.hasNextLine()) {
          String message = scn.nextLine();
-         if(message.equals("Client Connected")){
+         if (message.equals("Client Connected")) {
             taChat.appendText(username + " has entered the server \n");
             return;
          }
-         if(message.contains("<")){
+         if (message.contains("<")) {
             taChat.appendText(message + "\n");
+            tfMsg.setText("");
             return;
          }
-      }//while
+      } // while
    }
 
    // Sends user and pass to server.
@@ -347,8 +349,10 @@ public class Client extends Application {
       btnCreateAcc.setOnAction(new EventHandler<ActionEvent>() {
          public void handle(ActionEvent e) {
             if (tfPass.getText().equals(tfVerifyPass.getText())) {
-               sendUserInfo(tfUser.getText(), tfPass.getText());
                doConnect("localhost");
+               sendUserInfo(tfUser.getText(), tfPass.getText());
+               pwt.write("test");
+               pwt.flush();
                stage.setScene(sceneMain);
             } else {
                Alert alert = new Alert(AlertType.ERROR, "Passwords do not match!");
@@ -430,10 +434,6 @@ public class Client extends Application {
       lblPass.setLayoutY(213);
 
       Label lblVerifyPass = new Label("Verify Password");
-      lblVerifyPass.setLayoutX(49);
-      lblVerifyPass.setLayoutY(265);
-
-      Label lbl = new Label("Verify Password");
       lblVerifyPass.setLayoutX(49);
       lblVerifyPass.setLayoutY(265);
 

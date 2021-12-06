@@ -70,6 +70,7 @@ public class Client extends Application {
       tfMsg.setOnAction(new EventHandler<ActionEvent>() {
          public void handle(ActionEvent evt) {
             doSendMsg(tfMsg.getText());
+            tfMsg.setText("");
          }
       });
 
@@ -147,7 +148,6 @@ public class Client extends Application {
          }
          if(message.contains("<")){
             taChat.appendText(message + "\n");
-            tfMsg.setText("");
             return;
          }
       }//while

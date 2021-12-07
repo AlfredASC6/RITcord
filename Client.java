@@ -8,6 +8,9 @@ import javafx.scene.layout.*;
 import javafx.stage.*;
 import javafx.geometry.*;
 import java.util.*;
+
+import javax.imageio.IIOException;
+
 import java.io.*;
 import java.net.*;
 
@@ -103,12 +106,9 @@ public class Client extends Application {
       serverIP = _serverIP;
       try {
          socket = new Socket(serverIP, SERVER_PORT);
-
          scn1 = new Scanner(new InputStreamReader(socket.getInputStream()));
          pwt = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()), true);
       } catch (IOException ioe) {
-         Alert alert = new Alert(AlertType.ERROR, "Cannot open Sockets " + ioe);
-         alert.showAndWait();
       }
    }// end of doConnect()
 

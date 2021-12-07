@@ -123,9 +123,11 @@ public class Server extends Application implements EventHandler<ActionEvent> {
          try {
             // Open streams
             scn = new Scanner(new InputStreamReader(cSocket.getInputStream()));
-            // let client know that streams are open
-            // pwt.println("Client Connected");
-            // pwt.flush();
+
+            if (!encryptedPass.exists() || !usernameData.exists()) {
+               encryptedPass.createNewFile();
+               usernameData.createNewFile();
+            }
 
          } catch (IOException ioe) {
             taLog.appendText(clientId + " IO Exception (ClientThread): " + ioe + "\n");
@@ -161,7 +163,7 @@ public class Server extends Application implements EventHandler<ActionEvent> {
                            verifedUser = pwm.verifyUserPassword(userInfo[1], securePassword, salt[1]);
 
                         } catch (Exception e) {
-                           taLog.appendText("error verifying user data");
+                           taLog.appendText("error verifying user data" + e);
                         }
                         break;
                      } else {
@@ -169,7 +171,7 @@ public class Server extends Application implements EventHandler<ActionEvent> {
                      }
                   }
                } catch (Exception e) {
-                  taLog.appendText("Error checking if user exists");
+                  taLog.appendText("Data Files being created" + e);
                }
                if (!userFound) {
                   map.put(userInfo[0], pwm.getSalt(16));

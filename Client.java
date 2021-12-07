@@ -3,7 +3,6 @@ import javafx.event.*;
 import javafx.scene.*;
 import javafx.scene.text.*;
 import javafx.scene.control.*;
-import javafx.scene.control.Alert.*;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.layout.*;
 import javafx.stage.*;
@@ -11,8 +10,6 @@ import javafx.geometry.*;
 import java.util.*;
 import java.io.*;
 import java.net.*;
-import javafx.event.ActionEvent.*;
-import javafx.event.EventHandler.*;
 
 /**
  * Client - a class that displays a log in page and moderate chats
@@ -26,7 +23,6 @@ public class Client extends Application {
    private Scene sceneMain;
    private Scene sceneLogin;
    private Scene sceneSignUp;
-   private Scene sceneForgotPass;
    private VBox root = new VBox(8);
 
    public TextArea taChat = new TextArea();
@@ -36,21 +32,20 @@ public class Client extends Application {
 
    private String serverIP;
    private Socket socket = null;
-   private Scanner scn = null;
+   private Scanner scn;
    private PrintWriter pwt = null;
    private int SERVER_PORT = 32001;
 
-   
    static String username;
    static String password;
-   private boolean userVerified = false;
-   private String masterCode = "123";
 
    public static void main(String[] args) {
       launch(args);
+
    }
 
    public void start(Stage _stage) throws Exception {
+      doConnect("localhost");
       stage = _stage;
       stage.setTitle("RITcord");
 
@@ -73,14 +68,14 @@ public class Client extends Application {
             doSendMsg(tfMsg.getText());
          }
       });
-      
+
       root.getChildren().addAll(fpTop, fpMid, btnSend);
       sceneMain = new Scene(root, 500, 350);
       stage.setX(100);
       stage.setY(200);
       stage.setOnCloseRequest(new EventHandler<WindowEvent>() {
          public void handle(WindowEvent evt) {
-            // doDisconnect();
+            doDisconnect();
          }
       });
    }// end of start
@@ -103,18 +98,18 @@ public class Client extends Application {
       try {
          socket = new Socket(serverIP, SERVER_PORT);
          scn = new Scanner(new InputStreamReader(socket.getInputStream()));
-         pwt = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()));
+         pwt = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()), true);
 
-         if (scn.nextLine().equals("Client Connected")) {
-            Alert alert = new Alert(AlertType.INFORMATION, "Connected to server, login to continue.");
-            alert.showAndWait();
-         }
+         // if (scn.nextLine().equals("Client Connected")) {
+         // Alert alert = new Alert(AlertType.INFORMATION, "Connected to server, login to
+         // continue.");
+         // alert.showAndWait();
+         // }
 
       } catch (IOException ioe) {
          Alert alert = new Alert(AlertType.ERROR, "Cannot open Sockets " + ioe);
          alert.showAndWait();
       }
-      userVerified = true;
    }// end of doConnect()
 
    /*
@@ -122,38 +117,30 @@ public class Client extends Application {
     * Put the message in the TextArea and send to clients
     */
    private void doSendMsg(String message) {
-      try{
-         pwt.println(tfMsg.getText());
-         System.out.println("Message sent");
-      }
-      catch(Exception e){
-         System.out.println(e);
-      }
-      if (tfMsg.getText().isEmpty()) {
-         Alert alert = new Alert(AlertType.INFORMATION, "Please Type a message to be sent");
-         alert.showAndWait();
-         return;
-      } else {
+      if (message.equals("!login")) {
+         pwt.println(message);
+         pwt.flush();
+      } else if (message.length() > 0) {
          pwt.println("<" + username + ">" + message + "\n");
          pwt.flush();
+      } else {
+         Alert alert = new Alert(AlertType.INFORMATION, "Please Type a message to be sent");
+         alert.showAndWait();
       }
+      message = "";
       recMsg();
-      // idk how but this message has to be sent to the other clients that
-      // server - Andy
-      // once user is validated and logged in, any messages sent to server will be
-      // stored in local string and on chatlog
-      // as soon as server recieves, it resends to all clients, even the original
-      // client. client will only append taChat when it recieves msgs from server
    } // end doSendMsg
-     // recMsg takes any incoming information from server. Added condition to check
-     // whether it is a command or a message.
-   
-   
+
    private synchronized void recMsg() {
       while (scn.hasNextLine()) {
          String message = scn.nextLine();
-         if (message.equals("true")) {
-            userVerified = true;
+         if (message.equals("!verified")) {
+            stage.setScene(sceneMain);
+            return;
+         }
+         if (message.equals("!unverified")) {
+            Alert alert = new Alert(AlertType.INFORMATION, "Username or password is incorrect");
+            alert.showAndWait();
             break;
          }
          if (message.equals("Client Connected")) {
@@ -161,11 +148,7 @@ public class Client extends Application {
             return;
          }
          if (message.contains("<")) {
-            
-            //taChat.appendText(message + "\n");
-            MyLogger log = new MyLogger(taChat);
-
-            log.writeMessage(message + "\n");
+            taChat.appendText(message + "\n");
             tfMsg.setText("");
             return;
          }
@@ -176,21 +159,12 @@ public class Client extends Application {
    private void sendUserInfo(String _username, String _password) {
       username = _username;
       password = _password;
-      try{
+      try {
          pwt.println("!cmd" + username + "#" + password);
          pwt.flush();
-      }
-      catch(Exception e){
+      } catch (Exception e) {
          System.out.println(e);
       }
-   }
-
-   private void doPassChange(String resetCode, String _user, String _pass) {
-      // check if resetCode is correct, then call sendUserInfo(); output alert if any
-      // value is wrong
-      // IE resetCode is wrong or password does not have minimum requirements
-      // Once done, show alert to confirm account was made and change scene to
-      // sceneMain
    }
 
    /*
@@ -254,37 +228,20 @@ public class Client extends Application {
             doSignup();
          }
       });
-      btnFgtPass.setOnAction(new EventHandler<ActionEvent>() {
-         public void handle(ActionEvent e) {
-            doForgotPass();
-         }
-      });
       btnLogin.setOnAction(new EventHandler<ActionEvent>() {
          public void handle(ActionEvent e) {
             try {
-               doConnect("localhost");
-               sendUserInfo(tfUser.getText(), tfPass.getText());
-               System.out.println("waiting for verify");
-               Thread.sleep(10000);
-               System.out.println("stoped waiting");
-               recMsg();
-               if (userVerified) {
-                  stage.setScene(sceneMain);
-               } else {
-                  Alert alert = new Alert(AlertType.INFORMATION, "Username or password is incorrect.");
-                  alert.showAndWait();
+               if (socket == null) {
+                  doConnect("localhost");
                }
+               sendUserInfo(tfUser.getText(), tfPass.getText());
+               doSendMsg("!login");
             } catch (Exception E) {
-               Alert alert = new Alert(AlertType.INFORMATION, "Error verifying");
+               Alert alert = new Alert(AlertType.INFORMATION, "Error verifying" + E);
                alert.showAndWait();
             }
          }
       });
-      // btnConnect.setOnAction(new EventHandler<ActionEvent>() {
-      // public void handle(ActionEvent e) {
-      // doConnect(tfServer.getText());
-      // }
-      // });
       sceneLogin = new Scene(login);
       stage.setScene(sceneLogin);
       stage.show();
@@ -359,7 +316,7 @@ public class Client extends Application {
       lblVerifyPass.setLayoutY(151);
       lblVerifyPass.setPrefSize(300, 17);
 
-      signUp.getChildren().addAll(lblPassRequirements, btnCreateAcc, btnReturnLogin, tfPass, tfVerifyPass, tfUser,
+      signUp.getChildren().addAll(btnCreateAcc, btnReturnLogin, tfPass, tfVerifyPass, tfUser,
             lblSignUp, lblPass,
             lblUser, lblVerifyPass);
 
@@ -379,103 +336,6 @@ public class Client extends Application {
                stage.setScene(sceneMain);
             } else {
                Alert alert = new Alert(AlertType.ERROR, "Passwords do not match!");
-               alert.showAndWait();
-            }
-         }
-      });
-   }
-
-   public void doForgotPass() {
-
-      AnchorPane forgotPass = new AnchorPane();
-
-      forgotPass.setPrefSize(445, 400);
-
-      Button btnChangePass = new Button("Change Password");
-      btnChangePass.setLayoutX(318);
-      btnChangePass.setLayoutY(361);
-
-      Button btnReturnLogin = new Button("Back to Login");
-      btnReturnLogin.setLayoutX(23);
-      btnReturnLogin.setLayoutY(361);
-      btnReturnLogin.setPrefSize(116, 25);
-      btnReturnLogin.setTextAlignment(TextAlignment.CENTER);
-
-      TextField tfUser = new TextField();
-      tfUser.setPromptText("Username");
-      tfUser.setLayoutX(49);
-      tfUser.setLayoutY(178);
-      tfUser.setPrefSize(198, 35);
-
-      TextField tfResetCode = new TextField();
-      tfResetCode.setPromptText("Reset Code");
-      tfResetCode.setLayoutX(49);
-      tfResetCode.setLayoutY(99);
-      tfResetCode.setPrefSize(230, 51);
-
-      PasswordField tfPass = new PasswordField();
-      tfPass.setLayoutX(49);
-      tfPass.setLayoutY(230);
-      tfPass.setPrefSize(198, 35);
-      tfPass.setPromptText("New Password");
-
-      PasswordField tfVerifyPass = new PasswordField();
-      tfVerifyPass.setLayoutX(49);
-      tfVerifyPass.setLayoutY(282);
-      tfVerifyPass.setPrefSize(198, 35);
-      tfVerifyPass.setPromptText("Verify Password");
-
-      Label lblForgot = new Label("Forgot Password");
-      lblForgot.setLayoutX(26);
-      lblForgot.setLayoutY(14);
-      lblForgot.setTextAlignment(TextAlignment.CENTER);
-      lblForgot.setFont(Font.font(22));
-
-      Label lblUser = new Label("Username:");
-      lblUser.setLayoutX(49);
-      lblUser.setLayoutY(161);
-      lblUser.setPrefSize(116, 17);
-
-      Label lblInfo = new Label(
-            "If you have forgotten your password, please contact one of the developers to assist you with resetting your password.");
-      lblInfo.setLayoutX(49);
-      lblInfo.setLayoutY(58);
-      lblInfo.setPrefSize(338, 35);
-      lblInfo.setWrapText(true);
-
-      Label lblPassRequirements = new Label(
-            "Password must contain a minimum of 6 characters; 1 uppercase, 1 number and a special character. (!@#$%&*)");
-      lblPassRequirements.setLayoutX(49);
-      lblPassRequirements.setLayoutY(317);
-      lblPassRequirements.setPrefSize(345, 69);
-      lblPassRequirements.setWrapText(true);
-      lblPassRequirements.setOpacity(0.50);
-      lblPassRequirements.setAlignment(Pos.TOP_LEFT);
-
-      Label lblPass = new Label("Password");
-      lblPass.setLayoutX(49);
-      lblPass.setLayoutY(213);
-
-      Label lblVerifyPass = new Label("Verify Password");
-      lblVerifyPass.setLayoutX(49);
-      lblVerifyPass.setLayoutY(265);
-
-      forgotPass.getChildren().addAll(lblForgot, lblPass, lblUser, lblVerifyPass, lblPassRequirements,
-            lblInfo, tfResetCode, btnChangePass, btnReturnLogin, tfPass, tfVerifyPass, tfUser);
-
-      sceneForgotPass = new Scene(forgotPass);
-      stage.setScene(sceneForgotPass);
-      btnReturnLogin.setOnAction(new EventHandler<ActionEvent>() {
-         public void handle(ActionEvent e) {
-            doLogin();
-         }
-      });
-      btnChangePass.setOnAction(new EventHandler<ActionEvent>() {
-         public void handle(ActionEvent e) {
-            if (tfPass.getText().equals(tfVerifyPass.getText()) && tfResetCode.getText().equals(masterCode)) {
-               doPassChange(tfResetCode.getText(), tfUser.getText(), tfPass.getText());
-            } else {
-               Alert alert = new Alert(AlertType.ERROR, "Passwords do not match or reset code is incorrect");
                alert.showAndWait();
             }
          }

@@ -1,15 +1,11 @@
 import javafx.application.Application;
 import javafx.event.*;
 import javafx.scene.*;
-import javafx.scene.text.*;
 import javafx.scene.control.*;
-import javafx.scene.control.Alert.*;
 import javafx.scene.layout.*;
 import javafx.stage.*;
-import javafx.stage.FileChooser.*;
 import javafx.geometry.*;
 import java.util.*;
-import java.util.Map.Entry;
 import java.io.*;
 import java.net.*;
 
@@ -28,15 +24,13 @@ public class Server extends Application implements EventHandler<ActionEvent> {
    private Button button = new Button("Start");
 
    private int SERVER_PORT = 32001;
-   private PrintWriter pwt = null;
-   private PrintWriter pwt2 = null;
-   private File savedChat = null;
    private File encryptedPass = new File("./encryptedPass.dat");
    private File usernameData = new File("./usernameData.txt");
    private ServerThread serverThread = null;
    private passwordManager pwm = new passwordManager();
-   
+
    private boolean userFound;
+   private boolean verifedUser = false;
    private ServerSocket sSocket = null;
 
    private Vector<ClientThread> clients = null;
@@ -103,39 +97,41 @@ public class Server extends Application implements EventHandler<ActionEvent> {
    class ClientThread extends Thread {
       private Socket cSocket;
       private String clientId = "";
+      private Vector<ClientThread> clients;
       String line;
+      PrintWriter pwt = null;
 
-      public ClientThread(Socket _cSocket) {
+      public ClientThread(Socket _cSocket, Vector<ClientThread> clients) throws IOException {
          cSocket = _cSocket;
+         this.clients = clients;
          clientId = cSocket.getInetAddress().getHostAddress() + ":" + cSocket.getPort();
+         pwt = new PrintWriter(new OutputStreamWriter(cSocket.getOutputStream()));
          taLog.appendText(clientId + " Client connected!\n");
       }
 
       // main program for a ClientThread
       public void run() {
          Scanner scn = null;
-         PrintWriter pwt = null;
          BufferedWriter bw = null;
          BufferedReader br = null;
          BufferedReader br1 = null;
          BufferedReader br2 = null;
          DataOutputStream dos = null;
          int currentIndex = 0;
-         String message = "";
          // taLog.appendText(clientId + " Client connected!\n");
 
          try {
             // Open streams
             scn = new Scanner(new InputStreamReader(cSocket.getInputStream()));
-            pwt = new PrintWriter(new OutputStreamWriter(cSocket.getOutputStream()));
             // let client know that streams are open
-            pwt.println("Client Connected");
-            pwt.flush();
+            // pwt.println("Client Connected");
+            // pwt.flush();
 
          } catch (IOException ioe) {
             taLog.appendText(clientId + " IO Exception (ClientThread): " + ioe + "\n");
             return;
          }
+
          while (scn.hasNextLine()) {
             line = scn.nextLine();
             if (line.contains("!cmd")) {
@@ -156,16 +152,14 @@ public class Server extends Application implements EventHandler<ActionEvent> {
                            String securePassword = null;
                            // currentIndex = currentIndex - 1;
                            for (int i = 0; i <= currentIndex; i++) {
-                              securePassword = br1.readLine();
+                              securePassword = br1.readLine().substring(2);
                               System.out.println(securePassword);
                               salt = br2.readLine().split(":");
                            }
-                           System.out.println("verify start");
-                           pwm.verifyUserPassword(userInfo[1], securePassword, salt[1]);
-                           System.out.println("verify finish");
-                           pwt.print("true");
-                           pwt.flush();
-                           System.out.println("Sent verify");
+                           System.out.println(
+                                 (Boolean.toString(pwm.verifyUserPassword(userInfo[1], securePassword, salt[1]))));
+                           verifedUser = pwm.verifyUserPassword(userInfo[1], securePassword, salt[1]);
+
                         } catch (Exception e) {
                            taLog.appendText("error verifying user data");
                         }
@@ -196,23 +190,38 @@ public class Server extends Application implements EventHandler<ActionEvent> {
                   }
                }
             } else if (line.contains("<")) {
-               for (int i = 0; i < clients.size(); i++) {
-                  // Client client = clients.get(i);
+               try {
+                  for (ClientThread aThread : clients) {
+                     aThread.pwt.println(line);
+                     aThread.pwt.flush();
+                  }
+               } catch (Exception E) {
+                  System.out.print("No shot" + E);
                }
                System.out.println(line);
                taLog.appendText(line + "\n");
-               pwt.println(line);
-               pwt.flush();
+            } else if (line.contains("!login")) {
+               if (verifedUser) {
+                  pwt.println("!verified");
+                  pwt.flush();
+               } else {
+                  pwt.println("!unverified");
+                  pwt.flush();
+               }
             }
          }
       }// end of run
 
-      public void toAllClients(String Message) {
+      public int getPort() {
+         return cSocket.getPort();
+      }
 
+      public InetAddress getAddress() {
+         return cSocket.getInetAddress();
       }
    }// end of ClientThread
 
-   public void acceptClients() {
+   public void acceptClients() throws IOException {
       clients = new Vector<ClientThread>();
       while (true) {
          Socket cSocket = null;
@@ -223,12 +232,10 @@ public class Server extends Application implements EventHandler<ActionEvent> {
          catch (IOException ioe) {
             taLog.appendText("Socket failed");
          }
-         ClientThread clientThread = new ClientThread(cSocket);
+         ClientThread clientThread = new ClientThread(cSocket, clients);
          Thread thread = new Thread(clientThread);
          thread.start();
          clients.add(clientThread);
-         // clientThread.start(); making 2 intances of thread
-
       }
    }// end of accept clients
 }

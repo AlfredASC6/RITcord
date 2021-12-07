@@ -36,7 +36,7 @@ public class Client extends Application {
 
    private String serverIP;
    private Socket socket = null;
-   private Scanner scn;
+   private Scanner scn = null;
    private PrintWriter pwt = null;
    private int SERVER_PORT = 32001;
 
@@ -67,12 +67,6 @@ public class Client extends Application {
       fpMid.setAlignment(Pos.CENTER);
       tfMsg.setPrefColumnCount(20);
 
-      // tfMsg.setOnAction(new EventHandler<ActionEvent>() {
-//          public void handle(ActionEvent evt) {
-//             doSendMsg(tfMsg.getText());
-//          }
-//       });
-      
       btnSend.setOnAction(new EventHandler<ActionEvent>() {
          public void handle(ActionEvent evt) {
             doSendMsg(tfMsg.getText());
@@ -85,8 +79,6 @@ public class Client extends Application {
       stage.setY(200);
       stage.setOnCloseRequest(new EventHandler<WindowEvent>() {
          public void handle(WindowEvent evt) {
-             doDisconnect();
-             System.exit(0);
             // doDisconnect();
          }
       });
@@ -101,7 +93,6 @@ public class Client extends Application {
          socket.close();
       } catch (IOException ioe) {
          Alert alert = new Alert(AlertType.ERROR, "Exception " + ioe);
-         System.out.println(ioe);
          alert.showAndWait();
       }
    }// end doDisconnect()
@@ -121,9 +112,8 @@ public class Client extends Application {
       } catch (IOException ioe) {
          Alert alert = new Alert(AlertType.ERROR, "Cannot open Sockets " + ioe);
          alert.showAndWait();
-         System.out.println(ioe);
       }
-         userVerified = true;
+      userVerified = true;
    }// end of doConnect()
 
    /*
@@ -160,6 +150,10 @@ public class Client extends Application {
    private void recMsg() {
       while (scn.hasNextLine()) {
          String message = scn.nextLine();
+         if (message.equals("true")) {
+            userVerified = true;
+            break;
+         }
          if (message.equals("Client Connected")) {
             taChat.appendText(username + " has entered the server \n");
             return;
@@ -177,15 +171,12 @@ public class Client extends Application {
       username = _username;
       password = _password;
       try{
-         doConnect("localhost");
          pwt.println("!cmd" + username + "#" + password);
          pwt.flush();
       }
       catch(Exception e){
          System.out.println(e);
       }
-      pwt.println("!cmd" + username + "#" + password);
-      pwt.flush();
    }
 
    private void doPassChange(String resetCode, String _user, String _pass) {
@@ -264,12 +255,21 @@ public class Client extends Application {
       });
       btnLogin.setOnAction(new EventHandler<ActionEvent>() {
          public void handle(ActionEvent e) {
-            sendUserInfo(tfUser.getText(), tfPass.getText());
-            userVerified = scn.nextBoolean();
-            if (userVerified) {
-               stage.setScene(sceneMain);
-            } else {
-               Alert alert = new Alert(AlertType.INFORMATION, "Username or password is incorrect.");
+            try {
+               doConnect("localhost");
+               sendUserInfo(tfUser.getText(), tfPass.getText());
+               System.out.println("waiting for verify");
+               Thread.sleep(10000);
+               System.out.println("stoped waiting");
+               recMsg();
+               if (userVerified) {
+                  stage.setScene(sceneMain);
+               } else {
+                  Alert alert = new Alert(AlertType.INFORMATION, "Username or password is incorrect.");
+                  alert.showAndWait();
+               }
+            } catch (Exception E) {
+               Alert alert = new Alert(AlertType.INFORMATION, "Error verifying");
                alert.showAndWait();
             }
          }

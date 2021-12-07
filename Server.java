@@ -1,4 +1,4 @@
-import javafx.application.*;
+import javafx.application.Application;
 import javafx.event.*;
 import javafx.scene.*;
 import javafx.scene.text.*;
@@ -35,8 +35,6 @@ public class Server extends Application implements EventHandler<ActionEvent> {
    private File usernameData = new File("./usernameData.txt");
    private ServerThread serverThread = null;
    private passwordManager pwm = new passwordManager();
-   private Socket cSocket = null;
-   private Scanner scn;
 
    private boolean userFound;
    private ServerSocket sSocket = null;
@@ -82,17 +80,12 @@ public class Server extends Application implements EventHandler<ActionEvent> {
          case "Start":
             doStart();
             break;
-         case "Stop":
-            doStop();
-            break;
       }
    }
 
    public void doStart() {
       serverThread = new ServerThread();
       serverThread.start();
-      taLog.appendText("Server Started");
-      button.setText("Stop");
       taLog.appendText("Server Started\n");
    }
 
@@ -110,10 +103,10 @@ public class Server extends Application implements EventHandler<ActionEvent> {
    class ClientThread extends Thread {
       private Socket cSocket;
       private String clientId = "";
+      String line;
 
       public ClientThread(Socket _cSocket) {
          cSocket = _cSocket;
-         clientId = cSocket.getInetAddress().getHostAddress() + ":" + cSocket.getPort() + " ";
          clientId = cSocket.getInetAddress().getHostAddress() + ":" + cSocket.getPort();
          taLog.appendText(clientId + " Client connected!\n");
       }
@@ -126,20 +119,15 @@ public class Server extends Application implements EventHandler<ActionEvent> {
          BufferedReader br = null;
          BufferedReader br1 = null;
          BufferedReader br2 = null;
-         DataInputStream dis = null;
          DataOutputStream dos = null;
          int currentIndex = 0;
 
-          // taLog.appendText(clientId + " Client connected!\n");
-         log("Client + " + clientId);
+         // taLog.appendText(clientId + " Client connected!\n");
+
          try {
             // Open streams
             scn = new Scanner(new InputStreamReader(cSocket.getInputStream()));
             pwt = new PrintWriter(new OutputStreamWriter(cSocket.getOutputStream()));
-            if (!encryptedPass.exists() && !usernameData.exists()) {
-               encryptedPass.createNewFile();
-               usernameData.createNewFile();
-            }
             // let client know that streams are open
             pwt.println("Client Connected");
             pwt.flush();
@@ -149,8 +137,7 @@ public class Server extends Application implements EventHandler<ActionEvent> {
             return;
          }
          while (scn.hasNextLine()) {
-            String line = scn.nextLine();
-            log(line);
+            line = scn.nextLine();
             if (line.contains("!cmd")) {
                HashMap<String, String> map = new HashMap<>();
                line = line.replace("!cmd", "");
@@ -162,6 +149,26 @@ public class Server extends Application implements EventHandler<ActionEvent> {
                      if (currentLine.contains(userInfo[0])) {
                         userFound = true;
                         System.out.println("user found");
+                        try {
+                           br1 = new BufferedReader(new InputStreamReader(new FileInputStream(encryptedPass)));
+                           br2 = new BufferedReader(new InputStreamReader(new FileInputStream(usernameData)));
+                           String[] salt = null;
+                           String securePassword = null;
+                           // currentIndex = currentIndex - 1;
+                           for (int i = 0; i <= currentIndex; i++) {
+                              securePassword = br1.readLine();
+                              System.out.println(securePassword);
+                              salt = br2.readLine().split(":");
+                           }
+                           System.out.println("verify start");
+                           pwm.verifyUserPassword(userInfo[1], securePassword, salt[1]);
+                           System.out.println("verify finish");
+                           pwt.print("true");
+                           pwt.flush();
+                           System.out.println("Sent verify");
+                        } catch (Exception e) {
+                           taLog.appendText("error verifying user data");
+                        }
                         break;
                      } else {
                         currentIndex++;
@@ -173,7 +180,7 @@ public class Server extends Application implements EventHandler<ActionEvent> {
                if (!userFound) {
                   map.put(userInfo[0], pwm.getSalt(16));
                   try {
-                     bw = new BufferedWriter(new FileWriter(usernameData));
+                     bw = new BufferedWriter(new FileWriter(usernameData, true));
                      bw.write(userInfo[0] + ":" + map.get(userInfo[0]) + "\n");
                      bw.flush();
                      System.out.println(userInfo[0] + ":" + map.get(userInfo[0]) + "\n");
@@ -181,43 +188,34 @@ public class Server extends Application implements EventHandler<ActionEvent> {
                      taLog.appendText("error creating user data file");
                   }
                   try {
-                     dos = new DataOutputStream(new FileOutputStream(encryptedPass));
-                     dis = new DataInputStream(new FileInputStream(encryptedPass));
+                     dos = new DataOutputStream(new FileOutputStream(encryptedPass, true));
                      dos.writeUTF(pwm.generateSecurePassword(userInfo[1], map.get(userInfo[0])) + "\n");
                      dos.flush();
                   } catch (Exception e) {
                      taLog.appendText("error creating encrypted password file");
                   }
-               } else {
-                  try {
-                     br1 = new BufferedReader(new InputStreamReader(new FileInputStream(encryptedPass)));
-                     br2 = new BufferedReader(new InputStreamReader(new FileInputStream(usernameData)));
-                     String[] salt = null;
-                     String securePassword = null;
-                     // currentIndex = currentIndex - 1;
-                     for (int i = 0; i <= currentIndex; i++) {
-                        securePassword = br1.readLine();
-                        System.out.println(securePassword);
-                        salt = br2.readLine().split(":");
-                     }
-                     pwm.verifyUserPassword(userInfo[1], securePassword, salt[1]);
-                     pwt.print("true");
-                     pwt.flush();
-                  } catch (Exception e) {
-                  }
                }
             } else if (line.contains("<")) {
+               for (int i = 0; i < clients.size(); i++) {
+                  // Client client = clients.get(i);
+               }
+               System.out.println(line);
+               taLog.appendText(line + "\n");
                pwt.println(line);
                pwt.flush();
             }
          }
       }// end of run
+
+      public void toAllClients(String Message) {
+
+      }
    }// end of ClientThread
 
    public void acceptClients() {
       clients = new Vector<ClientThread>();
       while (true) {
-         //Socket cSocket = null;
+         Socket cSocket = null;
          try {
             cSocket = sSocket.accept();
          }
@@ -233,24 +231,4 @@ public class Server extends Application implements EventHandler<ActionEvent> {
 
       }
    }// end of accept clients
-   
-   public void doStop(){
-      try{
-         sSocket.close();
-         cSocket.close();
-         pwt.close();
-         scn.close();
-      }
-      catch(Exception e){
-         System.out.println(e);
-      }
-   }
-   
-   private void log(String message) {
-      Platform.runLater(new Runnable() {
-         public void run() {
-            taLog.appendText(message);
-         }
-      });
-   } // of log
 }

@@ -1,4 +1,4 @@
-import javafx.application.Application;
+import javafx.application.*;
 import javafx.event.*;
 import javafx.scene.*;
 import javafx.scene.text.*;
@@ -26,7 +26,7 @@ public class Server extends Application implements EventHandler<ActionEvent> {
    private TextArea taLog = new TextArea();
    private Button button = new Button("Start");
 
-   private int SERVER_PORT = 32323;
+   private int SERVER_PORT = 32001;
    private PrintWriter pwt = null;
    private PrintWriter pwt2 = null;
    private File savedChat = null;
@@ -34,6 +34,8 @@ public class Server extends Application implements EventHandler<ActionEvent> {
    private File usernameData;
    private ServerThread serverThread = null;
    private passwordManager pwm = new passwordManager();
+   private Socket cSocket = null;
+   private Scanner scn;
 
    private ServerSocket sSocket = null;
 
@@ -78,6 +80,9 @@ public class Server extends Application implements EventHandler<ActionEvent> {
          case "Start":
             doStart();
             break;
+         case "Stop":
+            doStop();
+            break;
       }
    }
 
@@ -85,6 +90,7 @@ public class Server extends Application implements EventHandler<ActionEvent> {
       serverThread = new ServerThread();
       serverThread.start();
       taLog.appendText("Server Started");
+      button.setText("Stop");
    }
 
    class ServerThread extends Thread {
@@ -104,7 +110,7 @@ public class Server extends Application implements EventHandler<ActionEvent> {
 
       public ClientThread(Socket _cSocket) {
          cSocket = _cSocket;
-         clientId = cSocket.getInetAddress().getHostAddress() + ":" + cSocket.getPort();
+         clientId = cSocket.getInetAddress().getHostAddress() + ":" + cSocket.getPort() + " ";
       }
 
       // main program for a ClientThread
@@ -113,8 +119,8 @@ public class Server extends Application implements EventHandler<ActionEvent> {
          PrintWriter pwt = null;
          BufferedWriter bw = null;
 
-         // taLog.appendText(clientId + " Client connected!\n");
-
+          // taLog.appendText(clientId + " Client connected!\n");
+         log("Client + " + clientId);
          try {
             // Open streams
             scn = new Scanner(new InputStreamReader(cSocket.getInputStream()));
@@ -131,6 +137,7 @@ public class Server extends Application implements EventHandler<ActionEvent> {
          while (scn.hasNextLine()) {
             // this is going to double print line.
             String line = scn.nextLine();
+            log(line);
             if (line.contains("!cmd")) {
                HashMap<String, String> map = new HashMap<>();
                line.replace("!cmd", "");
@@ -152,7 +159,7 @@ public class Server extends Application implements EventHandler<ActionEvent> {
    public void acceptClients() {
       // clients = new ArrayList<ClientThread>();
       while (true) {
-         Socket cSocket = null;
+         //Socket cSocket = null;
          try {
             cSocket = sSocket.accept();
          }
@@ -168,4 +175,25 @@ public class Server extends Application implements EventHandler<ActionEvent> {
 
       }
    }// end of accept clients
+   
+   public void doStop(){
+      try{
+         sSocket.close();
+         cSocket.close();
+         pwt.close();
+         scn.close();
+         System.exit(0);
+      }
+      catch(Exception e){
+         System.out.println(e);
+      }
+   }
+   
+   private void log(String message) {
+      Platform.runLater(new Runnable() {
+         public void run() {
+            taLog.appendText(message);
+         }
+      });
+   } // of log
 }

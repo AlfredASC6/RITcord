@@ -37,8 +37,8 @@ public class Client extends Application {
    private String serverIP;
    private Socket socket = null;
    private Scanner scn;
-   private PrintWriter pwt;
-   private int SERVER_PORT = 32323;
+   private PrintWriter pwt = null;
+   private int SERVER_PORT = 32001;
 
    static String username;
    static String password;
@@ -80,6 +80,7 @@ public class Client extends Application {
       stage.setOnCloseRequest(new EventHandler<WindowEvent>() {
          public void handle(WindowEvent evt) {
              doDisconnect();
+             System.exit(0);
          }
       });
    }// end of start
@@ -91,6 +92,7 @@ public class Client extends Application {
          socket.close();
       } catch (IOException ioe) {
          Alert alert = new Alert(AlertType.ERROR, "Exception " + ioe);
+         System.out.println(ioe);
          alert.showAndWait();
       }
    }// end doDisconnect()
@@ -110,8 +112,9 @@ public class Client extends Application {
       } catch (IOException ioe) {
          Alert alert = new Alert(AlertType.ERROR, "Cannot open Sockets " + ioe);
          alert.showAndWait();
+         System.out.println(ioe);
       }
-   userVerified = true;
+         userVerified = true;
    }// end of doConnect()
 
    /*
@@ -119,6 +122,7 @@ public class Client extends Application {
     * Put the message in the TextArea and send to clients
     */
    private void doSendMsg(String message) {
+      pwt.println(tfMsg.getText());
       if (tfMsg.getText().isEmpty()) {
          Alert alert = new Alert(AlertType.INFORMATION, "Please Type a message to be sent");
          alert.showAndWait();
@@ -157,9 +161,14 @@ public class Client extends Application {
    private void sendUserInfo(String _username, String _password) {
       username = _username;
       password = _password;
-      // doConnect("localhost");
-      pwt.println("!cmd" + username + "#" + password);
-      pwt.flush();
+      try{
+         doConnect("localhost");
+         pwt.println("!cmd" + username + "#" + password);
+         pwt.flush();
+      }
+      catch(Exception e){
+         System.out.println(e);
+      }
    }
 
    private void doPassChange(String resetCode, String _user, String _pass) {

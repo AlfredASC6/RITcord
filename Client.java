@@ -32,7 +32,7 @@ public class Client extends Application {
 
    private String serverIP;
    private Socket socket = null;
-   private Scanner scn;
+   private Scanner scn1;
    private PrintWriter pwt = null;
    private int SERVER_PORT = 32001;
 
@@ -65,7 +65,10 @@ public class Client extends Application {
 
       btnSend.setOnAction(new EventHandler<ActionEvent>() {
          public void handle(ActionEvent evt) {
-            doSendMsg(tfMsg.getText());
+            try {
+               doSendMsg(tfMsg.getText());
+            } catch (Exception iException) {
+            }
          }
       });
 
@@ -84,7 +87,6 @@ public class Client extends Application {
       try {
          // scn needs to be initialized. Runtime loop error when trying to close if
          // connection is not established
-         scn.close();
          pwt.close();
          socket.close();
       } catch (IOException ioe) {
@@ -93,19 +95,17 @@ public class Client extends Application {
       }
    }// end doDisconnect()
 
+   public Socket getSocket() {
+      return socket;
+   }
+
    public void doConnect(String _serverIP) {
       serverIP = _serverIP;
       try {
          socket = new Socket(serverIP, SERVER_PORT);
-         scn = new Scanner(new InputStreamReader(socket.getInputStream()));
+
+         scn1 = new Scanner(new InputStreamReader(socket.getInputStream()));
          pwt = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()), true);
-
-         // if (scn.nextLine().equals("Client Connected")) {
-         // Alert alert = new Alert(AlertType.INFORMATION, "Connected to server, login to
-         // continue.");
-         // alert.showAndWait();
-         // }
-
       } catch (IOException ioe) {
          Alert alert = new Alert(AlertType.ERROR, "Cannot open Sockets " + ioe);
          alert.showAndWait();
@@ -116,7 +116,7 @@ public class Client extends Application {
     * doSendMsg Method:
     * Put the message in the TextArea and send to clients
     */
-   private void doSendMsg(String message) {
+   private void doSendMsg(String message) throws IOException {
       if (message.equals("!login")) {
          pwt.println(message);
          pwt.flush();
@@ -131,11 +131,13 @@ public class Client extends Application {
       recMsg();
    } // end doSendMsg
 
-   private synchronized void recMsg() {
-      while (scn.hasNextLine()) {
-         String message = scn.nextLine();
+   private void recMsg() throws IOException {
+      serverHandler serverCon = new serverHandler();
+      while (scn1.hasNextLine()) {
+         String message = scn1.nextLine();
          if (message.equals("!verified")) {
             stage.setScene(sceneMain);
+            new Thread(serverCon).start();
             return;
          }
          if (message.equals("!unverified")) {
@@ -145,11 +147,6 @@ public class Client extends Application {
          }
          if (message.equals("Client Connected")) {
             taChat.appendText(username + " has entered the server \n");
-            return;
-         }
-         if (message.contains("<")) {
-            taChat.appendText(message + "\n");
-            tfMsg.setText("");
             return;
          }
       } // while
@@ -330,15 +327,33 @@ public class Client extends Application {
 
       btnCreateAcc.setOnAction(new EventHandler<ActionEvent>() {
          public void handle(ActionEvent e) {
-            doConnect("localhost");
-            if (tfPass.getText().equals(tfVerifyPass.getText())) {
-               sendUserInfo(tfUser.getText(), tfPass.getText());
-               stage.setScene(sceneMain);
-            } else {
-               Alert alert = new Alert(AlertType.ERROR, "Passwords do not match!");
-               alert.showAndWait();
+            try {
+               doConnect("localhost");
+               if (tfPass.getText().equals(tfVerifyPass.getText()) && !tfUser.getText().contains(" ")) {
+                  sendUserInfo(tfUser.getText(), tfPass.getText());
+                  doSendMsg("!login");
+               } else {
+                  Alert alert = new Alert(AlertType.ERROR, "Passwords do not match or Username contains a space");
+                  alert.showAndWait();
+               }
+            } catch (Exception E) {
             }
          }
       });
+   }
+
+   // Thread to constantly listen for nextLine.
+   public class serverHandler extends Thread {
+      public void run() {
+         try {
+            while (true) {
+               String message = scn1.nextLine();
+               taChat.appendText(message + "\n");
+               tfMsg.setText("");
+            }
+         } catch (Exception E) {
+            System.out.println(E);
+         }
+      }
    }
 }

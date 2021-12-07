@@ -142,7 +142,7 @@ public class Server extends Application implements EventHandler<ActionEvent> {
                   br = new BufferedReader(new InputStreamReader(new FileInputStream(usernameData)));
                   String currentLine;
                   while ((currentLine = br.readLine()) != null) {
-                     if (currentLine.contains(userInfo[0])) {
+                     if (currentLine.equals(userInfo[0])) {
                         userFound = true;
                         System.out.println("user found");
                         try {
@@ -188,6 +188,7 @@ public class Server extends Application implements EventHandler<ActionEvent> {
                   } catch (Exception e) {
                      taLog.appendText("error creating encrypted password file");
                   }
+                  verifedUser = true;
                }
             } else if (line.contains("<")) {
                try {

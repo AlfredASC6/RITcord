@@ -35,7 +35,7 @@ public class Server extends Application implements EventHandler<ActionEvent> {
    private File usernameData = new File("./usernameData.txt");
    private ServerThread serverThread = null;
    private passwordManager pwm = new passwordManager();
-
+   
    private boolean userFound;
    private ServerSocket sSocket = null;
 
@@ -121,7 +121,7 @@ public class Server extends Application implements EventHandler<ActionEvent> {
          BufferedReader br2 = null;
          DataOutputStream dos = null;
          int currentIndex = 0;
-
+         String message = "";
          // taLog.appendText(clientId + " Client connected!\n");
 
          try {

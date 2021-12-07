@@ -29,7 +29,7 @@ public class Client extends Application {
    private Scene sceneForgotPass;
    private VBox root = new VBox(8);
 
-   private TextArea taChat = new TextArea();
+   public TextArea taChat = new TextArea();
    private TextField tfMsg = new TextField();
    private Label lblMsg = new Label("Message");
    private Button btnSend = new Button("Send");
@@ -40,6 +40,7 @@ public class Client extends Application {
    private PrintWriter pwt = null;
    private int SERVER_PORT = 32001;
 
+   
    static String username;
    static String password;
    private boolean userVerified = false;
@@ -146,8 +147,9 @@ public class Client extends Application {
    } // end doSendMsg
      // recMsg takes any incoming information from server. Added condition to check
      // whether it is a command or a message.
-
-   private void recMsg() {
+   
+   
+   private synchronized void recMsg() {
       while (scn.hasNextLine()) {
          String message = scn.nextLine();
          if (message.equals("true")) {
@@ -159,7 +161,11 @@ public class Client extends Application {
             return;
          }
          if (message.contains("<")) {
-            taChat.appendText(message + "\n");
+            
+            //taChat.appendText(message + "\n");
+            MyLogger log = new MyLogger(taChat);
+
+            log.writeMessage(message + "\n");
             tfMsg.setText("");
             return;
          }

@@ -37,8 +37,8 @@ public class Client extends Application {
    private String serverIP;
    private Socket socket = null;
    private Scanner scn;
-   private PrintWriter pwt = null;
-   private int SERVER_PORT = 32001;
+   private PrintWriter pwt;
+   private int SERVER_PORT = 32323;
 
    static String username;
    static String password;
@@ -67,7 +67,7 @@ public class Client extends Application {
       fpMid.setAlignment(Pos.CENTER);
       tfMsg.setPrefColumnCount(20);
 
-      tfMsg.setOnAction(new EventHandler<ActionEvent>() {
+      btnSend.setOnAction(new EventHandler<ActionEvent>() {
          public void handle(ActionEvent evt) {
             doSendMsg(tfMsg.getText());
          }
@@ -79,12 +79,7 @@ public class Client extends Application {
       stage.setY(200);
       stage.setOnCloseRequest(new EventHandler<WindowEvent>() {
          public void handle(WindowEvent evt) {
-<<<<<<< HEAD
-             doDisconnect();
-             System.exit(0);
-=======
             // doDisconnect();
->>>>>>> d9af3dec0955e9204170d7a54a8adaf7e2c27c58
          }
       });
    }// end of start
@@ -98,7 +93,6 @@ public class Client extends Application {
          socket.close();
       } catch (IOException ioe) {
          Alert alert = new Alert(AlertType.ERROR, "Exception " + ioe);
-         System.out.println(ioe);
          alert.showAndWait();
       }
    }// end doDisconnect()
@@ -118,13 +112,8 @@ public class Client extends Application {
       } catch (IOException ioe) {
          Alert alert = new Alert(AlertType.ERROR, "Cannot open Sockets " + ioe);
          alert.showAndWait();
-         System.out.println(ioe);
       }
-<<<<<<< HEAD
-         userVerified = true;
-=======
       userVerified = true;
->>>>>>> d9af3dec0955e9204170d7a54a8adaf7e2c27c58
    }// end of doConnect()
 
    /*
@@ -132,7 +121,6 @@ public class Client extends Application {
     * Put the message in the TextArea and send to clients
     */
    private void doSendMsg(String message) {
-      pwt.println(tfMsg.getText());
       if (tfMsg.getText().isEmpty()) {
          Alert alert = new Alert(AlertType.INFORMATION, "Please Type a message to be sent");
          alert.showAndWait();
@@ -155,6 +143,10 @@ public class Client extends Application {
    private void recMsg() {
       while (scn.hasNextLine()) {
          String message = scn.nextLine();
+         if (message.equals("true")) {
+            userVerified = true;
+            break;
+         }
          if (message.equals("Client Connected")) {
             taChat.appendText(username + " has entered the server \n");
             return;
@@ -171,19 +163,8 @@ public class Client extends Application {
    private void sendUserInfo(String _username, String _password) {
       username = _username;
       password = _password;
-<<<<<<< HEAD
-      try{
-         doConnect("localhost");
-         pwt.println("!cmd" + username + "#" + password);
-         pwt.flush();
-      }
-      catch(Exception e){
-         System.out.println(e);
-      }
-=======
       pwt.println("!cmd" + username + "#" + password);
       pwt.flush();
->>>>>>> d9af3dec0955e9204170d7a54a8adaf7e2c27c58
    }
 
    private void doPassChange(String resetCode, String _user, String _pass) {
@@ -262,12 +243,21 @@ public class Client extends Application {
       });
       btnLogin.setOnAction(new EventHandler<ActionEvent>() {
          public void handle(ActionEvent e) {
-            sendUserInfo(tfUser.getText(), tfPass.getText());
-            userVerified = scn.nextBoolean();
-            if (userVerified) {
-               stage.setScene(sceneMain);
-            } else {
-               Alert alert = new Alert(AlertType.INFORMATION, "Username or password is incorrect.");
+            try {
+               doConnect("localhost");
+               sendUserInfo(tfUser.getText(), tfPass.getText());
+               System.out.println("waiting for verify");
+               Thread.sleep(10000);
+               System.out.println("stoped waiting");
+               recMsg();
+               if (userVerified) {
+                  stage.setScene(sceneMain);
+               } else {
+                  Alert alert = new Alert(AlertType.INFORMATION, "Username or password is incorrect.");
+                  alert.showAndWait();
+               }
+            } catch (Exception E) {
+               Alert alert = new Alert(AlertType.INFORMATION, "Error verifying");
                alert.showAndWait();
             }
          }

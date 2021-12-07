@@ -79,14 +79,20 @@ public class Client extends Application {
       stage.setY(200);
       stage.setOnCloseRequest(new EventHandler<WindowEvent>() {
          public void handle(WindowEvent evt) {
+<<<<<<< HEAD
              doDisconnect();
              System.exit(0);
+=======
+            // doDisconnect();
+>>>>>>> d9af3dec0955e9204170d7a54a8adaf7e2c27c58
          }
       });
    }// end of start
 
    private void doDisconnect() {
       try {
+         // scn needs to be initialized. Runtime loop error when trying to close if
+         // connection is not established
          scn.close();
          pwt.close();
          socket.close();
@@ -114,7 +120,11 @@ public class Client extends Application {
          alert.showAndWait();
          System.out.println(ioe);
       }
+<<<<<<< HEAD
          userVerified = true;
+=======
+      userVerified = true;
+>>>>>>> d9af3dec0955e9204170d7a54a8adaf7e2c27c58
    }// end of doConnect()
 
    /*
@@ -145,22 +155,23 @@ public class Client extends Application {
    private void recMsg() {
       while (scn.hasNextLine()) {
          String message = scn.nextLine();
-         if(message.equals("Client Connected")){
+         if (message.equals("Client Connected")) {
             taChat.appendText(username + " has entered the server \n");
             return;
          }
-         if(message.contains("<")){
+         if (message.contains("<")) {
             taChat.appendText(message + "\n");
             tfMsg.setText("");
             return;
          }
-      }//while
+      } // while
    }
 
    // Sends user and pass to server.
    private void sendUserInfo(String _username, String _password) {
       username = _username;
       password = _password;
+<<<<<<< HEAD
       try{
          doConnect("localhost");
          pwt.println("!cmd" + username + "#" + password);
@@ -169,6 +180,10 @@ public class Client extends Application {
       catch(Exception e){
          System.out.println(e);
       }
+=======
+      pwt.println("!cmd" + username + "#" + password);
+      pwt.flush();
+>>>>>>> d9af3dec0955e9204170d7a54a8adaf7e2c27c58
    }
 
    private void doPassChange(String resetCode, String _user, String _pass) {
@@ -206,12 +221,6 @@ public class Client extends Application {
       btnFgtPass.setPrefSize(123, 25);
       btnFgtPass.setTextAlignment(TextAlignment.CENTER);
 
-      Button btnConnect = new Button("Connect");
-      btnConnect.setLayoutX(290);
-      btnConnect.setLayoutY(361);
-      btnConnect.setPrefSize(149, 25);
-      btnConnect.setTextAlignment(TextAlignment.CENTER);
-
       TextField tfUser = new TextField();
       tfUser.setPromptText("Username");
       tfUser.setLayoutX(30);
@@ -239,7 +248,7 @@ public class Client extends Application {
       ritCordLabel.setTextOverrun(OverrunStyle.WORD_ELLIPSIS);
       ritCordLabel.setFont(Font.font(64));
 
-      login.getChildren().addAll(btnSignUp, btnLogin, btnFgtPass, btnConnect, tfUser, tfPass, tfServer, ritCordLabel);
+      login.getChildren().addAll(btnSignUp, btnLogin, btnFgtPass, tfUser, tfPass, tfServer, ritCordLabel);
 
       btnSignUp.setOnAction(new EventHandler<ActionEvent>() {
          public void handle(ActionEvent e) {
@@ -253,8 +262,9 @@ public class Client extends Application {
       });
       btnLogin.setOnAction(new EventHandler<ActionEvent>() {
          public void handle(ActionEvent e) {
+            sendUserInfo(tfUser.getText(), tfPass.getText());
+            userVerified = scn.nextBoolean();
             if (userVerified) {
-               sendUserInfo(tfUser.getText(), tfPass.getText());
                stage.setScene(sceneMain);
             } else {
                Alert alert = new Alert(AlertType.INFORMATION, "Username or password is incorrect.");
@@ -262,11 +272,11 @@ public class Client extends Application {
             }
          }
       });
-      btnConnect.setOnAction(new EventHandler<ActionEvent>() {
-         public void handle(ActionEvent e) {
-            doConnect(tfServer.getText());
-         }
-      });
+      // btnConnect.setOnAction(new EventHandler<ActionEvent>() {
+      // public void handle(ActionEvent e) {
+      // doConnect(tfServer.getText());
+      // }
+      // });
       sceneLogin = new Scene(login);
       stage.setScene(sceneLogin);
       stage.show();
@@ -355,9 +365,9 @@ public class Client extends Application {
 
       btnCreateAcc.setOnAction(new EventHandler<ActionEvent>() {
          public void handle(ActionEvent e) {
+            doConnect("localhost");
             if (tfPass.getText().equals(tfVerifyPass.getText())) {
                sendUserInfo(tfUser.getText(), tfPass.getText());
-               doConnect("localhost");
                stage.setScene(sceneMain);
             } else {
                Alert alert = new Alert(AlertType.ERROR, "Passwords do not match!");
@@ -439,10 +449,6 @@ public class Client extends Application {
       lblPass.setLayoutY(213);
 
       Label lblVerifyPass = new Label("Verify Password");
-      lblVerifyPass.setLayoutX(49);
-      lblVerifyPass.setLayoutY(265);
-
-      Label lbl = new Label("Verify Password");
       lblVerifyPass.setLayoutX(49);
       lblVerifyPass.setLayoutY(265);
 

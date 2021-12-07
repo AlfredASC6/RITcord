@@ -9,6 +9,7 @@ import javafx.stage.*;
 import javafx.stage.FileChooser.*;
 import javafx.geometry.*;
 import java.util.*;
+import java.util.Map.Entry;
 import java.io.*;
 import java.net.*;
 
@@ -30,16 +31,17 @@ public class Server extends Application implements EventHandler<ActionEvent> {
    private PrintWriter pwt = null;
    private PrintWriter pwt2 = null;
    private File savedChat = null;
-   private File encryptedPass;
-   private File usernameData;
+   private File encryptedPass = new File("./encryptedPass.dat");
+   private File usernameData = new File("./usernameData.txt");
    private ServerThread serverThread = null;
    private passwordManager pwm = new passwordManager();
    private Socket cSocket = null;
    private Scanner scn;
 
+   private boolean userFound;
    private ServerSocket sSocket = null;
 
-   private ArrayList<ClientThread> clients = null;
+   private Vector<ClientThread> clients = null;
 
    public static void main(String[] args) {
       launch(args);
@@ -89,8 +91,12 @@ public class Server extends Application implements EventHandler<ActionEvent> {
    public void doStart() {
       serverThread = new ServerThread();
       serverThread.start();
+<<<<<<< HEAD
       taLog.appendText("Server Started");
       button.setText("Stop");
+=======
+      taLog.appendText("Server Started\n");
+>>>>>>> d9af3dec0955e9204170d7a54a8adaf7e2c27c58
    }
 
    class ServerThread extends Thread {
@@ -110,7 +116,12 @@ public class Server extends Application implements EventHandler<ActionEvent> {
 
       public ClientThread(Socket _cSocket) {
          cSocket = _cSocket;
+<<<<<<< HEAD
          clientId = cSocket.getInetAddress().getHostAddress() + ":" + cSocket.getPort() + " ";
+=======
+         clientId = cSocket.getInetAddress().getHostAddress() + ":" + cSocket.getPort();
+         taLog.appendText(clientId + " Client connected!\n");
+>>>>>>> d9af3dec0955e9204170d7a54a8adaf7e2c27c58
       }
 
       // main program for a ClientThread
@@ -118,6 +129,12 @@ public class Server extends Application implements EventHandler<ActionEvent> {
          Scanner scn = null;
          PrintWriter pwt = null;
          BufferedWriter bw = null;
+         BufferedReader br = null;
+         BufferedReader br1 = null;
+         BufferedReader br2 = null;
+         DataInputStream dis = null;
+         DataOutputStream dos = null;
+         int currentIndex = 0;
 
           // taLog.appendText(clientId + " Client connected!\n");
          log("Client + " + clientId);
@@ -125,7 +142,10 @@ public class Server extends Application implements EventHandler<ActionEvent> {
             // Open streams
             scn = new Scanner(new InputStreamReader(cSocket.getInputStream()));
             pwt = new PrintWriter(new OutputStreamWriter(cSocket.getOutputStream()));
-
+            if (!encryptedPass.exists() && !usernameData.exists()) {
+               encryptedPass.createNewFile();
+               usernameData.createNewFile();
+            }
             // let client know that streams are open
             pwt.println("Client Connected");
             pwt.flush();
@@ -135,20 +155,64 @@ public class Server extends Application implements EventHandler<ActionEvent> {
             return;
          }
          while (scn.hasNextLine()) {
-            // this is going to double print line.
             String line = scn.nextLine();
             log(line);
             if (line.contains("!cmd")) {
                HashMap<String, String> map = new HashMap<>();
-               line.replace("!cmd", "");
+               line = line.replace("!cmd", "");
                String[] userInfo = line.split("#");
-               map.put(userInfo[0], pwm.getSalt(32));
-               // hashmap needs to be placed into file
-               pwm.generateSecurePassword(userInfo[1], map.get(userInfo[0]));
-               // secure password needs to be placed into file @ THE SAME INDEX AS THE USER
-               // DATA!!.
-            }
-            else if(line.contains("<")){
+               try {
+                  br = new BufferedReader(new InputStreamReader(new FileInputStream(usernameData)));
+                  String currentLine;
+                  while ((currentLine = br.readLine()) != null) {
+                     if (currentLine.contains(userInfo[0])) {
+                        userFound = true;
+                        System.out.println("user found");
+                        break;
+                     } else {
+                        currentIndex++;
+                     }
+                  }
+               } catch (Exception e) {
+                  taLog.appendText("Error checking if user exists");
+               }
+               if (!userFound) {
+                  map.put(userInfo[0], pwm.getSalt(16));
+                  try {
+                     bw = new BufferedWriter(new FileWriter(usernameData));
+                     bw.write(userInfo[0] + ":" + map.get(userInfo[0]) + "\n");
+                     bw.flush();
+                     System.out.println(userInfo[0] + ":" + map.get(userInfo[0]) + "\n");
+                  } catch (Exception e) {
+                     taLog.appendText("error creating user data file");
+                  }
+                  try {
+                     dos = new DataOutputStream(new FileOutputStream(encryptedPass));
+                     dis = new DataInputStream(new FileInputStream(encryptedPass));
+                     dos.writeUTF(pwm.generateSecurePassword(userInfo[1], map.get(userInfo[0])) + "\n");
+                     dos.flush();
+                  } catch (Exception e) {
+                     taLog.appendText("error creating encrypted password file");
+                  }
+               } else {
+                  try {
+                     br1 = new BufferedReader(new InputStreamReader(new FileInputStream(encryptedPass)));
+                     br2 = new BufferedReader(new InputStreamReader(new FileInputStream(usernameData)));
+                     String[] salt = null;
+                     String securePassword = null;
+                     // currentIndex = currentIndex - 1;
+                     for (int i = 0; i <= currentIndex; i++) {
+                        securePassword = br1.readLine();
+                        System.out.println(securePassword);
+                        salt = br2.readLine().split(":");
+                     }
+                     pwm.verifyUserPassword(userInfo[1], securePassword, salt[1]);
+                     pwt.print("true");
+                     pwt.flush();
+                  } catch (Exception e) {
+                  }
+               }
+            } else if (line.contains("<")) {
                pwt.println(line);
                pwt.flush();
             }
@@ -157,7 +221,7 @@ public class Server extends Application implements EventHandler<ActionEvent> {
    }// end of ClientThread
 
    public void acceptClients() {
-      // clients = new ArrayList<ClientThread>();
+      clients = new Vector<ClientThread>();
       while (true) {
          //Socket cSocket = null;
          try {
@@ -167,11 +231,11 @@ public class Server extends Application implements EventHandler<ActionEvent> {
          catch (IOException ioe) {
             taLog.appendText("Socket failed");
          }
-         ClientThread client = new ClientThread(cSocket);
-         Thread thread = new Thread(client);
+         ClientThread clientThread = new ClientThread(cSocket);
+         Thread thread = new Thread(clientThread);
          thread.start();
-         // clients.add(client);
-         client.start();
+         clients.add(clientThread);
+         // clientThread.start(); making 2 intances of thread
 
       }
    }// end of accept clients

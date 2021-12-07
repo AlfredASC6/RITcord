@@ -79,13 +79,15 @@ public class Client extends Application {
       stage.setY(200);
       stage.setOnCloseRequest(new EventHandler<WindowEvent>() {
          public void handle(WindowEvent evt) {
-            doDisconnect();
+            // doDisconnect();
          }
       });
    }// end of start
 
    private void doDisconnect() {
       try {
+         // scn needs to be initialized. Runtime loop error when trying to close if
+         // connection is not established
          scn.close();
          pwt.close();
          socket.close();
@@ -105,8 +107,6 @@ public class Client extends Application {
          if (scn.nextLine().equals("Client Connected")) {
             Alert alert = new Alert(AlertType.INFORMATION, "Connected to server, login to continue.");
             alert.showAndWait();
-            pwt.write("Connection Confirmed");
-            pwt.flush();
          }
 
       } catch (IOException ioe) {
@@ -159,7 +159,6 @@ public class Client extends Application {
    private void sendUserInfo(String _username, String _password) {
       username = _username;
       password = _password;
-      // doConnect("localhost");
       pwt.println("!cmd" + username + "#" + password);
       pwt.flush();
    }
@@ -199,12 +198,6 @@ public class Client extends Application {
       btnFgtPass.setPrefSize(123, 25);
       btnFgtPass.setTextAlignment(TextAlignment.CENTER);
 
-      Button btnConnect = new Button("Connect");
-      btnConnect.setLayoutX(290);
-      btnConnect.setLayoutY(361);
-      btnConnect.setPrefSize(149, 25);
-      btnConnect.setTextAlignment(TextAlignment.CENTER);
-
       TextField tfUser = new TextField();
       tfUser.setPromptText("Username");
       tfUser.setLayoutX(30);
@@ -232,7 +225,7 @@ public class Client extends Application {
       ritCordLabel.setTextOverrun(OverrunStyle.WORD_ELLIPSIS);
       ritCordLabel.setFont(Font.font(64));
 
-      login.getChildren().addAll(btnSignUp, btnLogin, btnFgtPass, btnConnect, tfUser, tfPass, tfServer, ritCordLabel);
+      login.getChildren().addAll(btnSignUp, btnLogin, btnFgtPass, tfUser, tfPass, tfServer, ritCordLabel);
 
       btnSignUp.setOnAction(new EventHandler<ActionEvent>() {
          public void handle(ActionEvent e) {
@@ -256,11 +249,11 @@ public class Client extends Application {
             }
          }
       });
-      btnConnect.setOnAction(new EventHandler<ActionEvent>() {
-         public void handle(ActionEvent e) {
-            doConnect(tfServer.getText());
-         }
-      });
+      // btnConnect.setOnAction(new EventHandler<ActionEvent>() {
+      // public void handle(ActionEvent e) {
+      // doConnect(tfServer.getText());
+      // }
+      // });
       sceneLogin = new Scene(login);
       stage.setScene(sceneLogin);
       stage.show();

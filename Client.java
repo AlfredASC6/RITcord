@@ -67,24 +67,27 @@ public class Client extends Application {
       fpMid.setAlignment(Pos.CENTER);
       tfMsg.setPrefColumnCount(20);
 
-      tfMsg.setOnAction(new EventHandler<ActionEvent>() {
+      // tfMsg.setOnAction(new EventHandler<ActionEvent>() {
+//          public void handle(ActionEvent evt) {
+//             doSendMsg(tfMsg.getText());
+//          }
+//       });
+      
+      btnSend.setOnAction(new EventHandler<ActionEvent>() {
          public void handle(ActionEvent evt) {
             doSendMsg(tfMsg.getText());
          }
       });
-
+      
       root.getChildren().addAll(fpTop, fpMid, btnSend);
       sceneMain = new Scene(root, 500, 350);
       stage.setX(100);
       stage.setY(200);
       stage.setOnCloseRequest(new EventHandler<WindowEvent>() {
          public void handle(WindowEvent evt) {
-<<<<<<< HEAD
              doDisconnect();
              System.exit(0);
-=======
             // doDisconnect();
->>>>>>> d9af3dec0955e9204170d7a54a8adaf7e2c27c58
          }
       });
    }// end of start
@@ -120,11 +123,7 @@ public class Client extends Application {
          alert.showAndWait();
          System.out.println(ioe);
       }
-<<<<<<< HEAD
          userVerified = true;
-=======
-      userVerified = true;
->>>>>>> d9af3dec0955e9204170d7a54a8adaf7e2c27c58
    }// end of doConnect()
 
    /*
@@ -132,7 +131,13 @@ public class Client extends Application {
     * Put the message in the TextArea and send to clients
     */
    private void doSendMsg(String message) {
-      pwt.println(tfMsg.getText());
+      try{
+         pwt.println(tfMsg.getText());
+         System.out.println("Message sent");
+      }
+      catch(Exception e){
+         System.out.println(e);
+      }
       if (tfMsg.getText().isEmpty()) {
          Alert alert = new Alert(AlertType.INFORMATION, "Please Type a message to be sent");
          alert.showAndWait();
@@ -171,7 +176,6 @@ public class Client extends Application {
    private void sendUserInfo(String _username, String _password) {
       username = _username;
       password = _password;
-<<<<<<< HEAD
       try{
          doConnect("localhost");
          pwt.println("!cmd" + username + "#" + password);
@@ -180,10 +184,8 @@ public class Client extends Application {
       catch(Exception e){
          System.out.println(e);
       }
-=======
       pwt.println("!cmd" + username + "#" + password);
       pwt.flush();
->>>>>>> d9af3dec0955e9204170d7a54a8adaf7e2c27c58
    }
 
    private void doPassChange(String resetCode, String _user, String _pass) {

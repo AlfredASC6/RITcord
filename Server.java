@@ -91,12 +91,9 @@ public class Server extends Application implements EventHandler<ActionEvent> {
    public void doStart() {
       serverThread = new ServerThread();
       serverThread.start();
-<<<<<<< HEAD
       taLog.appendText("Server Started");
       button.setText("Stop");
-=======
       taLog.appendText("Server Started\n");
->>>>>>> d9af3dec0955e9204170d7a54a8adaf7e2c27c58
    }
 
    class ServerThread extends Thread {
@@ -116,12 +113,9 @@ public class Server extends Application implements EventHandler<ActionEvent> {
 
       public ClientThread(Socket _cSocket) {
          cSocket = _cSocket;
-<<<<<<< HEAD
          clientId = cSocket.getInetAddress().getHostAddress() + ":" + cSocket.getPort() + " ";
-=======
          clientId = cSocket.getInetAddress().getHostAddress() + ":" + cSocket.getPort();
          taLog.appendText(clientId + " Client connected!\n");
->>>>>>> d9af3dec0955e9204170d7a54a8adaf7e2c27c58
       }
 
       // main program for a ClientThread
@@ -246,7 +240,6 @@ public class Server extends Application implements EventHandler<ActionEvent> {
          cSocket.close();
          pwt.close();
          scn.close();
-         System.exit(0);
       }
       catch(Exception e){
          System.out.println(e);
